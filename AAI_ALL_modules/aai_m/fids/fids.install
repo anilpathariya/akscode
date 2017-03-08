@@ -1,0 +1,20 @@
+<?php
+/*
+*  Implements hook_schema
+*    Defines all the gamification related tables in the system 
+*/
+function airseva_schema() {
+  // aai_notification_log table
+  $tables['aai_notification_log'] = array(
+    'description' => 'Table Notification Log.',
+    'fields' => array(
+    'id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Notification log Id'),
+    'nid' =>  array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+	  'notification_num' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+    'created' =>  array('type' => 'date', 'unsigned' => TRUE, 'not null' => TRUE),
+    'uid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),	   
+    ),
+    'primary key' => array('id'),
+  );
+  return $tables;
+}

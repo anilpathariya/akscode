@@ -1,0 +1,36 @@
+<?php
+/*
+*  Implements hook_schema
+*    Defines all the gamification related tables in the system 
+*/
+function airseva_schema() {
+  // aai_notification_log table
+  $tables['aai_notification_log'] = array(
+    'description' => 'Table Notification Log.',
+    'fields' => array(
+      'nl_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Notification log Id'),
+      'complaint_id' =>  array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+	  'user_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'description' => 'User ID'),
+    'status' =>  array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 1, 'description' => 'Complaint Status'),
+    'type' => array('type' => 'int', 'unsigned' => TRUE, 'size' => 'tiny', 'not null' => TRUE, 'default' => 1, 'description' => 'Defines notification type i.e 1 = email, 2 = sms'),
+	  'notification_count' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 1, 'description' => 'Number of notifications sent'),
+	  'updated_on' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+	  'created_on' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+    ),
+    'primary key' => array('nl_id'),
+  );	
+
+  $tables['aai_notification_count_log'] = array(
+    'description' => 'Table Notification Log.',
+    'fields' => array(
+      'ncl_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Notification count log Id'),
+      'nl_id' =>  array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Notification log Id'),
+	  'user_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'description' => 'User ID'),
+	  'updated_on' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+	  'created_on' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+    ),
+    'primary key' => array('ncl_id'),
+  );
+
+  return $tables;
+}

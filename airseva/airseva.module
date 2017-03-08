@@ -1,0 +1,559 @@
+<?php
+function airseva_permission() {
+  $permissions['airseva admin'] = array(
+    'title' => t('Administer Airseva Configurations'),
+  );
+  
+  return $permissions;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function airseva_menu() {
+  $items = array();
+
+  $items['administer/airseva'] = array (
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('airseva_administer_configuration'),
+    'title' => t('Air Sewa Configuration'),
+    'access arguments' => array('airseva admin'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'inc/aai_administer_airseva.inc',
+    'file path' => drupal_get_path('module', 'airseva'),
+  );
+
+  $items['test'] = array (
+    'type' => MENU_CALLBACK,
+    'page callback' => 'test',
+    'access arguments' => array('access content'),
+  );
+
+  return $items;
+}
+
+/** 
+ * Testing function.
+ */
+function test() {
+  drupal_access_denied();
+  exit;
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * We are using cron to send reminder notification only for complaints that are
+ * in assigned/reassigned status i.e '1 & 2'
+ */
+function airseva_cron() {
+  // fetch all recently added compalints in last 1hr 5min. with status 2
+  $query = db_select('aai_complaint', 'ac');   
+  $query->fields('ac', array('complaint_id', 'complaint_ticket_number', 'complainer_email', 'assigned_to_tid', 'complaint_status_id', 'complain_source_id', 'complaint_type', 'priority'));
+  $query->condition('complaint_status_id', 3, '!=');
+  //$query->where('created_at >= DATE_SUB(NOW(), INTERVAL 1.05 HOUR)');
+  $result = $query->execute();
+
+  // array to hold all complaint details
+  $comp = array();
+
+  // loop through newly fetched complaints
+  while($complaint_data = $result->fetchAssoc()) {
+    $cid = $complaint_data['complaint_id'];
+    $complaint_status = $complaint_data['complaint_status_id'];
+    $complaint_type = $complaint_data['complaint_type'];
+    $complaint_no = $complaint_data['complaint_ticket_number'];
+    $priority = $complaint_data['priority'];
+    $assigned_to_tid = $complaint_data['assigned_to_tid'];
+    $complaint_source = $complaint_data['complain_source_id'];
+    $complainer_email = $complaint_data['complainer_email'];
+
+    // Continue to next element of the loop if priority equals to Zero
+    if (!$priority) {
+      continue;    
+    }
+
+    // check if complaint source allows for notification
+    $can_notify = 1;
+    $permission_fld_name = 'complaint_assign_forward';
+
+    $qry = db_select('aai_complaint_source', 'acs');
+    $qry->fields('acs', array($permission_fld_name));
+    $qry->condition('acs.complain_source_id', $complaint_source);
+    $rs = $qry->execute();
+    if($rs->rowCount()) {
+      $obj = $rs->fetchObject();
+      $can_notify = $obj->$permission_fld_name;
+    } else {
+      $can_notify = 0;
+    } 
+
+    if($can_notify) {
+      // get priority frequency
+      $alert_hour = FALSE;
+
+      $query_cp = db_select('aai_complaint_priority', 'acp');
+      $query_cp->fields('acp', array('alert_hour'));
+      $query_cp->condition('priority', $priority);
+      $query_cp->condition('status', 1);
+      $result_cp = $query_cp->execute();
+    
+      if ($result_cp->rowCount()) {
+        $priority_data = $result_cp->fetchAssoc();
+        $alert_hour = $priority_data['alert_hour'];
+      } else {
+        continue;
+      }
+
+      // get list of users to whom complaint is assigned.
+      $assigned_to_uid = get_complaint_assignee($assigned_to_tid);
+
+      $sub_type = 'rem';
+      $now = time();
+      $notification_limit = variable_get('airseva_notice_frequency', 0);
+
+      // loop through all users to whom complaint is assigned
+      foreach($assigned_to_uid as $cuid) {
+        $usr_log_entry_exists = 1;
+
+        // get 'nl_id' of the current compalint for the user
+        $qry = db_select('aai_notification_log', 'anl');
+        $qry->fields('anl', array('nl_id', 'type'));
+        $qry->condition('complaint_id', $cid);
+        $qry->condition('user_id', $cuid);
+        $qry->condition('status', $complaint_status);
+        //$qry->condition('type', 1);
+        $rs = $qry->execute();
+        if(!$rs->rowCount()) {
+          $usr_log_entry_exists = 0;
+        }
+
+        $email_nlid = $sms_nlid = 0;
+        while($obj = $rs->fetchObject) {
+          if ($obj->type == 1) {
+            $email_nlid = $obj->nl_id;
+          } else {
+            $sms_nlid = $obj->nl_id;
+          }
+        }
+
+        // variables to check for all criterias
+        $email_notification_limit_crossed = 0;
+        $email_notification_time_elapsed = 1;
+        $sms_notification_limit_crossed = 0;
+        $sms_notification_time_elapsed = 1;
+
+        if($usr_log_entry_exists) {
+          // get count of email notifications sent to current user
+          $qry = db_select('aai_notification_count_log', 'ancl');
+          $qry->fields('ancl', arrya('ncl_id', 'created_on'))
+          ->condition('ancl.nl_id', $email_nlid)
+          ->orderBy('ncl_id', 'DESC');
+          $rs = $qry->execute();
+          $user_email_notification_count = $rs->rowCount();
+
+          // if notification limit exceeded for email
+          $email_notification_limit_crossed = 0;
+          if($notification_limit && $user_email_notification_count >= $notification_limit) {
+            $email_notification_limit_crossed = 1;
+          }
+
+          // get last notification time for email
+          $log_data = $rs->fetchObject();
+          $email_notification_time = $log_data->created_on;
+
+          // check if consecutive email notification time gap elapsed
+          $email_notification_time_elapsed = 1;
+          $hrs_elapsed = (time() - $email_notification_time) / 60*60;
+          if($hrs_elapsed < $alert_hour && $alert_hour !== FALSE) {
+            $email_notification_time_elapsed = 0;
+          }
+
+          if($sms_nlid) {
+            // get count of sms notifications sent to current user
+            $qry = db_select('aai_notification_count_log', 'ancl');
+            $qry->fields('ancl', arrya('ncl_id', 'created_on'))
+            ->condition('ancl.nl_id', $sms_nlid)
+            ->orderBy('ncl_id', 'DESC');
+            $rs = $qry->execute();
+            $user_sms_notification_count = $rs->rowCount();
+
+            // if notification limit exceeded for sms
+            $sms_notification_limit_crossed = 0;
+            if($notification_limit && $user_sms_notification_count >= $notification_limit) {
+              $sms_notification_limit_crossed = 1;
+            }
+
+            // get last notification time for email
+            $log_data = $rs->fetchObject();
+            $sms_notification_time = $log_data->created_on;
+
+            // check if consecutive sms notification time gap elapsed
+            $sms_notification_time_elapsed = 1;
+            $hrs_elapsed = (time() - $sms_notification_time) / 60*60;
+            if($hrs_elapsed < $alert_hour && $alert_hour !== FALSE) {
+              $sms_notification_time_elapsed = 0;
+            }
+          }
+        }
+
+        // Code to send Notification
+        // send email notofication if all criteria meets
+        if(!$email_notification_limit_crossed &&
+          $email_notification_time_elapsed) {
+          $emailarray = airseva_explode_template($complaint_no, 'email', $sub_type, $cuid);
+          if (count($emailarray)) {
+            $sendemail = notification_mail($complainer_email, $emailarray);
+
+            // do entry into notification log for email if entry does not esists
+            $tbl = 'aai_notification_log';
+            $rec_exists = db_select($tbl, 'tbl')
+            ->fields('tbl', array('complaint_id'))
+            ->condition('tbl.complaint_id', $cid)
+            ->condition('tbl.user_id', $cuid)
+            ->condition('tbl.status', 2)
+            ->condition('tbl.type', 1)
+            ->execute()->rowCount();
+
+            if(!$rec_exists) {
+              $inserted_id = db_insert($tbl)
+              ->fields(array(
+                'complaint_id' => $cid,
+                'user_id' => $cuid,
+                'status' => 2,
+                'type' => 1,
+                'updated_on' => $now,
+                'created_on' => $now,
+              ))->execute();
+            }
+
+            // do entry into 'aai_notification_count_log'
+            db_insert('aai_notification_count_log')
+            ->fields(array(
+              'nl_id' => $inserted_id,
+              'user_id' => $cuid,
+              'updated_on' => $now,
+              'created_on' => $now,
+            ))->execute();
+  
+            unset($inserted_id);
+            watchdog('airseva', "email notification sent to %mail.", array('%mail' => $complainer_email));
+          }
+        }
+
+        // send sms notification only if enabled and all criteria passed
+        $sms_enabled = variable_get('airseva_sms_enabled');
+        if($sms_enabled && !$sms_notification_limit_crossed && 
+          $sms_notification_time_elapsed) {
+          $smsarray = airseva_explode_template($complaint_no, 'sms', $sub_type, $cuid);
+          if (count($smsarray)) {
+            $sendsms = notification_sms($mobile, $smsarray);
+
+            // do entry into notification log for SMS, only if entry does not exists
+            $rec_exists = db_select($tbl, 'tbl')
+            ->fields('tbl', array('complaint_id'))
+            ->condition('tbl.complaint_id', $cid)
+            ->condition('tbl.user_id', $cuid)
+            ->condition('tbl.status', 2)
+            ->condition('tbl.type', 2)
+            ->execute()->rowCount();
+
+            if(!$rec_exists) {
+              $inserted_id = db_insert('aai_notification_log')
+              ->fields(array(
+                'complaint_id' => $cid,
+                'user_id' => $cuid,
+                'status' => 2,
+                'type' => 2,
+                'updated_on' => $now,
+                'created_on' => $now,
+              ))->execute();
+            }
+
+            // do entry into 'aai_notification_count_log'
+            db_insert('aai_notification_count_log')
+            ->fields(array(
+              'nl_id' => $inserted_id,
+              'user_id' => $cuid,
+              'updated_on' => $now,
+              'created_on' => $now,
+            ))->execute();
+
+            watchdog('airseva', "SMS notification sent to %phone.", array('%phone' => $mobile));
+          }
+        }
+      } 
+    } // can notify if ends
+  } // while ends
+}
+
+function out($data) {
+  echo "<pre>"; print_r($data);
+}
+
+/**
+ * Implements hook_mail().
+ *
+ * @param $key
+ *   String an identifier of the mail.
+ * @param $message
+ *   Array associative array.
+ * @param $params
+ *   Array parameters supplied by the caller of drupal_mail()
+ */
+function airseva_mail($key, &$message, $params) {
+  $message['headers']['MIME-Version'] = '1.0';
+  $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+  $message['headers']['Content-Transfer-Encoding'] = '8Bit';
+
+  switch ($key) {
+    case 'notification' :
+    default : 
+      $message['subject'] = $params['subject'];
+      $message['body'] = $params['body']; 
+    break;
+  }
+}
+
+/**
+ * Function to return template
+ *
+ * @param
+ *   Number complaint number
+ * @param
+ *   String type of template i.e 'email' or 'sms'
+ * @param
+ *   String sub type  i.e 'ack', 'res', 'rem'
+ *
+ * @return
+ *   Array associative array of normalized text 
+ */
+function airseva_explode_template($complaint_no = 0, $type = 'email', $sub_type = 'ack', $uid = 0) {
+  if (!$complaint_no) {
+    return array();
+  }
+  global $base_url;
+
+  // get template body
+  $tmp = 'airseva_' . $type . '_' . $sub_type . '_bdy';
+  $template_bdy = trim(variable_get($tmp));
+  
+  // if template body not defined return blank array
+  if ($template_bdy == '') {
+    return array();
+  }
+ 
+  if ($type == 'email') {
+    $tmp = 'airseva_' . $type . '_' . $sub_type . '_sub';
+    $template_subject = variable_get($tmp);
+  }
+
+  $result = db_select('aai_complaint', 'ac')
+    ->fields('ac' , array('complainer_name','complainer_email','complaint_id','complaint_status_id','assigned_to_tid',))
+    ->condition('complaint_ticket_number', $complaint_no)
+    ->execute();
+  $finaldata = $result->fetchAssoc();
+
+  // get list of valid tokens supported
+  $site_tokens = unserialize(variable_get('airseva_tokens'));
+  
+  // setup all token values
+  $sender_name = variable_get('airseva_email_from', 'support@airsewa.gov.in');
+  if ($sub_type != 'rem') {
+    $receiver_name = $finaldata['complainer_name'];
+  } else {
+    $userInfo = user_load($uid);
+    $username = $userInfo->name;
+    $receiver_name = $username;
+  }
+  $complaint_num = $complaint_no;
+  $feedback_link = $status_link = $base_url . '/complaint/track';
+  $status_link = $feedback_link = l($feedback_link, $feedback_link);
+  // response text to come only if complaint status is 3
+  $response_text = "";
+
+  if($finaldata['complaint_status_id'] == 3){
+    $result_res = db_select('aai_complaint_history', 'ch')
+    ->fields('ch' , array('comment'))
+    ->condition('complaint_id', $finaldata['complaint_id'])
+    ->condition('complaint_status_id', '3')
+    ->execute();
+    $finaldata_res = $result_res->fetchAssoc();
+    $response_text = $finaldata_res['comment'];
+  }
+
+  foreach($site_tokens as $val) {
+    $tmp = str_replace('%%', '', $val);
+    $tmp = strtolower(str_replace(' ', '_', $tmp));
+    $replaced_var[$val] = ${$tmp};
+  }
+
+  $body = strtr($template_bdy, $replaced_var);
+  if ($type == 'email') {
+    $sub = strtr($template_subject, $replaced_var);
+    return array('body' => $body, 'subject' => $sub);
+  }
+
+  return array('body' => $body);
+}
+
+/**
+ * Function to send email notification.
+ *
+ */
+function notification_mail($to, $body = array()) {
+  $bdy = $body['body'];
+  $sub = $body['subject'];
+  $params = array(
+    'body' => $body,
+    'subject' => $sub,
+  );
+
+  $from = variable_get('airseva_email_from', 'support@airsev.gov.in');
+  $sent = drupal_mail('airseva', 'notification', $to, language_default(), $params, $from, TRUE);
+
+  if ($sent['result'] == TRUE) {
+    watchdog('airseva', "Email Notification sent to %mail.", array('%mail' => $to));
+  } else {
+    watchdog('airseva', "Problem sending email notification to %mail.", array('%mail' => $to));
+  }
+}
+
+/**
+ * Function to send SMS notification
+ */
+function notification_sms($ph_no, $text = array()) {
+  // send sms only if enabled
+  $sms_enabled = variable_get('airseva_sms_enabled');
+  if(!$sms_enabled) {
+    return FALSE;
+  }
+
+  // send SMS code ...
+}
+
+/**
+ * Function to return array of user ID's to whom complaint is assigned.
+ */
+function get_complaint_assignee($tid) {
+  $qry = db_select('aai_complaint_permission', 'acp');
+  $qry->fields('acp', array('uid'));
+  $qry->condition('tid', $tid);
+  $result = $qry->execute();
+
+  $uids = array();
+  if ($result->rowCount()) {
+    while($obj = $result->fetchObject()) {
+      $uids[$obj->uid] = $obj->uid;
+    }
+    return $uids;
+  } else {
+    return array();
+  }
+}
+
+/**
+ * Function to send notification Email and SMS on new and resolved complaints
+ *
+ *@param
+ *   Number complaint ID
+ * @param
+ *   Number complaint source ID
+ * @param
+ *   Number complaint number
+ * @param
+ *   String Notification sub-type "ack, res, rem"
+ * @param
+ *   Number mobile number on which to send sms
+ * @param
+ *   String email address
+ * @param
+ *   Number status of the complaint i.e 1 = new, 2 = Reminder, 3 = closed.
+ */
+function trigger_notification($cid, $complaint_no, $source_id, $sub_type, $mobile, $email, $status = 1) {
+  
+  // check if complaint source allows for notification
+  $can_notify = 1;
+  $permission_fld_name = '';
+  if ($sub_type == 'res' || $sub_type == 'ack') {
+    switch($sub_type) {
+      case 'ack' :
+        $permission_fld_name = 'response_sent_to_complainer';
+        break;
+      case 'res' :
+        $permission_fld_name = 'dispose_off_response_sent_to_complainer';
+        break;
+    }
+    $qry = db_select('aai_complaint_source', 'acs');
+    $qry->fields('acs', array($permission_fld_name));
+    $qry->condition('acs.complain_source_id', $source_id);
+    $rs = $qry->execute();
+    if($rs->rowCount()) {
+      $obj = $rs->fetchObject();
+      $can_notify = $obj->$permission_fld_name;
+    } else {
+      $can_notify = 0;
+    }
+  }
+
+  // send notifications if complaint source allows for notification
+  if($can_notify) {
+    //Send Email
+    $emailarray = airseva_explode_template($complaint_no, 'email', $sub_type);
+    if (count($emailarray)) {
+      $sendemail = notification_mail($email, $emailarray);
+      $now = time();
+
+      // do entry into notification log for email.
+      $inserted_id = db_insert('aai_notification_log')
+      ->fields(array(
+        'complaint_id' => $cid,
+        'user_id' => 0,
+        'status' => $status,
+        'type' => 1,
+        'updated_on' => $now,
+        'created_on' => $now,
+      ))->execute();
+
+      // do entry into 'aai_notification_count_log'
+      db_insert('aai_notification_count_log')
+      ->fields(array(
+        'nl_id' => $inserted_id,
+        'user_id' => 0,
+        'updated_on' => $now,
+        'created_on' => $now,
+      ))->execute();
+
+      unset($inserted_id);
+    }
+
+    // send sms notification only if enabled
+    $sms_enabled = variable_get('airseva_sms_enabled');
+    if($sms_enabled && $can_notify) {
+      $smsarray = airseva_explode_template($complaint_no, 'sms', $sub_type);
+      if (count($smsarray)) {
+        $sendsms = notification_sms($mobile, $smsarray);
+
+        // do entry into notification log for SMS
+        $inserted_id = db_insert('aai_notification_log')
+        ->fields(array(
+          'complaint_id' => $cid,
+          'user_id' => 0,
+          'status' => $status,
+          'type' => 2,
+          'updated_on' => $now,
+          'created_on' => $now,
+        ))->execute();
+
+        // do entry into 'aai_notification_count_log'
+        db_insert('aai_notification_count_log')
+        ->fields(array(
+          'nl_id' => $inserted_id,
+          'user_id' => 0,
+          'updated_on' => $now,
+          'created_on' => $now,
+        ))->execute();
+      }
+    }
+  }
+}

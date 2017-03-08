@@ -1,0 +1,3 @@
+name = Complaint
+description = Enables the use of complaints forms.
+core = 7.x

@@ -1,0 +1,4 @@
+name = Airseva
+description = Module for Airseva Configurations
+core = 7.x
+package = custom

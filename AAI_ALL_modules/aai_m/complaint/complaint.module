@@ -1,0 +1,299 @@
+<?php
+/**
+ * @file
+ * Enables the use of personal and site-wide contact forms.
+ */
+ 
+/**
+ * Implements hook_help().
+ */
+function complaint_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#complaint':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The complaint module allows visitors to raise complain'). '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function complaint_permission() {
+  return array(
+    'administer complaint forms' => array(
+      'title' => t('Administer forms complaint settings'),
+    ),
+    'access site-wide complaint forms' => array(
+      'title' => t('Use the site-wide complaint form'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function complaint_menu() {
+ $complaint_title = "Complaint";
+ if(isset($_SESSION['aaiuser_complaint_form_entry']) && $_SESSION['aaiuser_complaint_form_entry']=='Y'){
+	$complaint_title = "Offline complaint";
+ }
+ $items['complaint'] = array(
+    'title' => $complaint_title,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('complaint_site_form'),
+    'access arguments' => array('access site-wide complaint forms'),
+    'type' => MENU_SUGGESTED_ITEM,
+    'file' => 'complaint.pages.inc',
+  );
+  
+  $items['complaint/track'] = array(
+    'title' => 'Track complain',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('complaint_track_login'),
+    'access arguments' => array('access site-wide complaint forms'),
+    'type' => MENU_SUGGESTED_ITEM,
+    'file' => 'complaint.pages.inc',
+  );
+  
+  $items['complaint/track/detail'] = array(
+    'title' => 'Complaint details',
+    'page callback' => 'complaint_detail',
+    'access arguments' => array('access site-wide complaint forms'),
+    'type' => MENU_VISIBLE_IN_BREADCRUMB,
+    'file' => 'complaint.pages.inc',
+  );
+    
+  $items['admin/structure/complaint'] = array(
+    'title' => 'Complaint',
+    'description' => 'Create a system complaint form and set up categories for the form to use.',
+    'page callback' => 'complaint_list',
+    'access arguments' => array('administer complaint forms'),
+    'file' => 'complaint.admin.inc',
+  );
+  
+  $items['admin/structure/complaint/view/%'] = array(
+    'title' => 'Complaint View',
+    'description' => '',
+    'page callback' => 'complaint_view',
+	'page arguments' => array('complaint_view', 4),
+    'access arguments' => array('administer complaint forms'),
+    'file' => 'complaint.admin.inc',
+  );
+  
+  $items['admin/structure/complaint/addofflinecomplaint'] = array(
+    'title' => 'Add Offline Complaint',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('complaint_offline_edit_form'),
+    'access arguments' => array('administer complaint forms'),
+	'access callback' => 'complaintAdminAirportPageAccess',
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 1,
+    'file' => 'complaint.admin.inc',
+  );
+  
+  $items['admin/structure/complaint/complaint_manager'] = array(
+    'title' => 'Complaint managers',
+    'description' => 'Create a system complaint form and set up roles for users.',
+    'page callback' => 'complaint_manager',
+    'access arguments' => array('administer complaint forms'),
+	'access callback' => 'complaintAdminPageAccess',
+	'weight' => 2,
+    'file' => 'complaint.admin.inc',
+  );
+  
+  $items['admin/structure/complaint/complaint_manager/assign'] = array(
+    'title' => 'Assign complaint manager',
+    'description' => 'Create a system complaint form and set up roles for users.',
+    'page callback' => 'drupal_get_form',
+	'page arguments' => array('complaint_manager_assign_form'),
+    'access arguments' => array('administer complaint forms'),
+	'access callback' => 'complaintAdminPageAccess',
+	'weight' => 2,
+    'file' => 'complaint.admin.inc',
+  );
+  
+  $items['admin/structure/complaint/complaint_manager/assign/aasign_confirm'] = array(
+    'title' => 'Confirm',
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('aasign_confirm_form'),
+    'access arguments' => array('administer complaint forms'),
+	'access callback' => 'complaintAdminPageAccess',
+    'type' => MENU_VISIBLE_IN_BREADCRUMB,
+    'file' => 'complaint.admin.inc',
+  );
+  
+  $items['admin/structure/complaint/category'] = array(
+    'title' => 'Manage Category',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('complaint_category_list'),
+    'access arguments' => array('administer complaint forms'),
+	'access callback' => 'complaintAdminPageAccess',
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 3,
+    'file' => 'complaint.admin.inc',
+  );
+  $items['admin/structure/complaint/category/add'] = array(
+    'title' => 'Add Category',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('complaint_category_edit_form'),
+    'access arguments' => array('administer complaint forms'),
+	'access callback' => 'complaintAdminPageAccess',
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 3,
+    'file' => 'complaint.admin.inc',
+  );
+  
+  $items['admin/structure/complaint/category/edit/%'] = array(
+    'title' => 'Edit complaint category',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('complaint_category_edit_form', 5),
+    'access arguments' => array('administer complaint forms'),
+	'access callback' => 'complaintAdminPageAccess',
+    'file' => 'complaint.admin.inc',
+  );
+  
+  $items['admin/structure/complaint/category/delete/%'] = array(
+    'title' => 'Delete complaint',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('complaint_category_delete_form', 5),
+    'access arguments' => array('administer complaint forms'),
+	'access callback' => 'complaintAdminPageAccess',
+    'file' => 'complaint.admin.inc',
+  );
+    
+  //Sources :
+  $items['admin/structure/complaint/source'] = array(
+    'title' => 'Manage Source',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('complaint_source_list'),
+    'access arguments' => array('administer complaint forms'),
+	'access callback' => 'complaintAdminPageAccess',
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 5,
+    'file' => 'complaint.admin.inc',
+  );
+  
+  $items['admin/structure/complaint/source/add'] = array(
+    'title' => 'Add Source',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('complaint_source_edit_form'),
+    'access arguments' => array('administer complaint forms'),
+	'access callback' => 'complaintAdminPageAccess',
+    'type' => MENU_LOCAL_ACTION,
+    'weight' => 5,
+    'file' => 'complaint.admin.inc',
+  );
+  
+  $items['admin/structure/complaint/source/edit/%'] = array(
+    'title' => 'Edit complaint source',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('complaint_source_edit_form', 5),
+    'access arguments' => array('administer complaint forms'),
+	'access callback' => 'complaintAdminPageAccess',
+    'file' => 'complaint.admin.inc',
+  );
+  
+  $items['admin/structure/complaint/source/delete/%'] = array(
+    'title' => 'Delete complaint source',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('complaint_source_delete_form', 5),
+    'access arguments' => array('administer complaint forms'),
+	'access callback' => 'complaintAdminPageAccess',
+    'file' => 'complaint.admin.inc',
+  );
+  
+  return $items;
+}
+
+function getAaiAirportVariable($variable){
+
+ $airports = db_select('aai_airport_variable', 'aav')
+    ->fields('aav', array($variable))
+    ->execute()
+    ->fetchAssoc();
+	return $airports[$variable];
+	
+}
+
+function validateInput($data){
+	if (preg_match('/^([a-zA-Z0-9\s\_\-\+]+)$/', $data)) {
+        return true;
+    }
+	else{
+		return false;
+	}
+}
+
+function filterComplaintInput($data){
+ return filter_xss($data);
+}
+
+function complaintAdminPageAccess(){
+	
+	global $user;
+	if (!$user->uid) {
+		return FALSE;
+	}
+	$user_id = $user->uid; 
+	$user_roles = getComplaintUserRole($user_id);
+	$administrator_role = getAaiAirportVariable('aai_chq_administrator_role_id');
+	$aai_chq_complaint_manager_role_id = getAaiAirportVariable('aai_chq_complaint_manager_role_id');
+	if(in_array($administrator_role, $user_roles) || in_array($aai_chq_complaint_manager_role_id, $user_roles)){
+		return TRUE;
+	}else{
+		return FALSE;
+	}
+}
+
+function complaintAdminAirportPageAccess(){
+	
+	global $user;
+	if (!$user->uid) {
+		return FALSE;
+	}
+	$user_id = $user->uid; 
+	$user_roles = getComplaintUserRole($user_id);
+	$administrator_role = getAaiAirportVariable('aai_chq_administrator_role_id');
+	$aai_chq_complaint_manager_role_id = getAaiAirportVariable('aai_chq_complaint_manager_role_id');
+	$aai_airport_complaint_manager_role_id = getAaiAirportVariable('aai_airport_complaint_manager_role_id'); //for airport,rhq and airlines
+	if(in_array($administrator_role, $user_roles) || in_array($aai_chq_complaint_manager_role_id, $user_roles) || in_array($aai_airport_complaint_manager_role_id, $user_roles)){
+		return TRUE;
+	}else{
+		return FALSE;
+	}
+}
+
+/**
+ * get user role.
+ */
+function getComplaintUserRole($user_id) {
+	$user_roles = array();
+	$result = db_select('users_roles', 'ur')
+	->addTag('translatable')
+	->fields('ur' , array('rid'))
+	->condition('uid', $user_id)
+	->execute();
+		while($user_role = $result->fetchAssoc()){
+			$user_roles[] = $user_role['rid'];
+		}
+		
+	return $user_roles;
+}
+
+function complaintUserInformation($type){
+	if($type == 'request_ip'){ 
+		return ip_address();
+	}
+	if($type == 'updated_by'){
+		global $user;
+		return $user->uid;
+	}
+	if($type == 'updated_at'){
+		return date("Y-m-d:H:i:s");
+	}
+	if($type == 'created_at'){
+		return date("Y-m-d:H:i:s");
+	}
+}

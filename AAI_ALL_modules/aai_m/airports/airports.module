@@ -1,0 +1,1640 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function airports_menu() {
+  $items = array();
+
+ /* $items['airport-submenu-detail'] =  array (
+    'page callback' => 'airport_submenu_detail',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['airports/transport/%'] =  array (
+    'page callback' => 'airports_pages',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['airports/city-info/%'] =  array (
+    'page callback' => 'airports_pages',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['airports/passenger-info/%'] =  array (
+    'page callback' => 'airports_pages',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+  );*/
+  $items['corporate-organizational-structure'] =  array (
+    'title' => t('Organization Structure'),
+    'page callback' => 'corporate_organizational_structure',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/corporate_organizational_structure.inc',
+    'file path' => drupal_get_path('airports', 'fids'),
+  );
+  $items['corporate-airport-policy'] =  array (
+    'page callback' => 'corporate_airport_policy',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/corporate_airport_policy.inc',
+    'file path' => drupal_get_path('airports', 'fids'),
+  );
+   $items['corporate/origanization-structure'] =  array (
+    'page callback' => 'corporate_origanization_structure',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['check-social-api-existence'] = array (
+    'page callback' => 'check_social_api_existence',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['administer/social-media/config/twitter'] =  array(
+    'title' => t('Twitter API Configurations'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('administer_social_media_api_twitter'),
+    'access arguments' => array('social media permission'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['administer/social-media/config/facebook'] =  array(
+    'title' => t('Facebook API Configurations'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('administer_social_media_api_facebook'),
+    'access arguments' => array('social media permission'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['airports/transport/%'] =  array (
+    'title' => t('Transport'),
+    'page callback' => 'transport_layout',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['regions_airport'] =  array (
+    'page callback' => 'regions_airport',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Callback for airports/passenger-info/%
+ */
+function airports_pages() {
+  return '';
+}
+
+function corporate_origanization_structure() {
+  drupal_set_title(t('Organization Structure'));
+  return '';
+}
+
+/**
+ * Implements hook_theme().
+ */
+function airports_theme($existing, $type, $theme, $path) {
+  $themes = array(
+    'corporate_organizational_structure' => array(
+      'template' => 'templates/corporate_organizational_structure',
+    ),
+     'corporate_airport_policy' => array(
+      'template' => 'templates/corporate_airport_policy',
+    ),
+  );
+
+  return $themes;
+}
+
+/**
+* Permission for social media page configrations menus
+*/
+function airports_permission() {
+  return array(
+    'social media permission' => array(
+      'title' => t('Social Media data permission'),
+      'description' => t('Perform administration tasks for Social Media data permission.'),
+    ),
+  );
+}
+
+/**
+ * validate related airport exist or not.
+ */
+
+function airports_form_alter(&$form, $form_state, $form_id) {
+//out($form_id);die;
+  $functions = AAI::getInstance();
+  $lang = $functions->aaiCurrentLang();
+  if($form_id == 'airports_node_form' || $form_id == 'airport_passenger_information_fa_node_form' || $form_id == 'airport-transportation_node_form' && (arg(2)=='airports' || arg(2) == 'airport-city-information' ||arg(2) == 'airport-passenger-information-fa' || arg(2) == 'airport-transportation' )) {
+    
+    $form['field_related_airport']['container'] = array(
+      '#prefix' => '<div id="country_form_wrapper">',
+      '#suffix' => '</div>',
+    );
+    $form['#validate'][] = 'aai_validation_related_airport';
+    $form['#validate'][] = 'aai_check_airport_content_add_edit_perm';
+  } else if(($form_id == 'aeroplane_node_form') || ($form_id == 'airport_news_node_form') || ($form_id == 'airport_achievements_node_form') || ($form_id == 'airport_city_information_node_form') || ($form_id == 'airport_facilities_node_form') || ($form_id == 'airport_passenger_information_fa_node_form') || ($form_id == 'airport_photo_gallery_node_form') || ($form_id == 'airport_transportation_node_form') || ($form_id == 'airports_node_form') || ($form_id == 'airports_faq')) {
+    
+    $form['field_related_airport']['container'] = array(
+      '#prefix' => '<div id="country_form_wrapper">',
+      '#suffix' => '</div>',
+    );
+    $form['#validate'][] = 'aai_check_airport_content_add_edit_perm';
+
+  } else if($form_id == 'aai_inner_page_banner_node_form' && arg(1)== 'add' ) {
+    $form['#validate'][] = 'aai_inner_page_banner_validate';
+  } else if($form_id == 'vigilance_integrity_club_node_form'){
+    $form['#validate'][] = 'aai_validation_integrity_club_validate';
+  } else if($form_id == 'airports_node_form' && arg(2) == 'edit') {
+    Global $user;
+    $nId = arg(1);
+    $userInfo = user_load($user->uid);
+    $airportTid = $userInfo->field_airport[$lang][0]['tid'];
+    $nodeInfo = node_load($nId);   
+    $node_airport = $nodeInfo->field_related_airport[$lang][0]['tid'];
+    if($airportTid != $node_airport){
+       drupal_access_denied();
+      }
+    } else if($form_id == 'search_form') {
+     // print "<pre>";
+     // print_r( $form );
+     // print "</pre>";
+    }
+    
+}
+
+/**
+ *  validate airport in databse.
+ * @todo
+ *   1) Fetch airport specific term.
+ *   2) count the result .  
+ *
+ * @see
+ *  Airport exist on base of term count
+*/
+function aai_validation_related_airport($form, $form_state) {
+  //die('fasfsa');
+  global $user;
+  $content_type = arg(2);
+  $final_contenttype = str_replace('-', '_', $content_type);
+  $functions = AAI::getInstance();
+  $lang = $functions->aaiCurrentLang();
+  //out($form_state['values']);die;
+  if(isset($form_state['values']['field_related_airport'][$lang])){
+    $selected_airport_tid = $form_state['values']['field_related_airport'][$lang][0]['tid'];
+  }else{
+   // die('cccc');
+  $selected_airport_tid = $form_state['values']['field_related_airport'][LANGUAGE_NONE][0]['tid'];
+  }
+  $tbl = 'field_data_field_related_airport';
+  $cond_flds = array(
+    'field_related_airport_tid' => $selected_airport_tid,
+    'bundle' => $final_contenttype,
+  );
+  $resultAirports = $functions->aaiCheckIfNodeExists($tbl, $cond_flds);
+  //out($resultAirports);die;
+  if(arg(0)=='node' && is_numeric(arg(1)) && arg(2) == 'edit') {
+    if ($resultAirports > 1) {
+      form_set_error('field_related_airport', 'This Airport Already Exist.');
+    }
+  }
+  else {
+     if ($resultAirports) {
+      form_set_error('title', 'This Airport Already Exist'); 
+     }
+  }
+}
+/**
+ * validate airport in databse. 
+ * @todo
+ *   1) Fetch airport specific term.
+ *   2) count the result .  
+ *
+ * @see
+ *  Airport exist on base of term count
+*/
+function aai_check_airport_content_add_edit_perm($form, $form_state) {
+  Global $user;
+  $content_type = arg(2);
+
+  $functions = AAI::getInstance();
+  $lang = $functions->aaiCurrentLang();
+
+  if(isset($form_state['values']['field_related_airport'][$lang][0]['tid'])) {
+    $selected_airport_tid = $form_state['values']['field_related_airport'][$lang][0]['tid'];
+  } else{
+    $selected_airport_tid = $form_state['values']['field_related_airport']['und'][0]['tid'];
+  }
+
+  $user_information = user_load($user->uid);
+  if((in_array('creator', $user_information->roles)) || (in_array('publisher', $user_information->roles))){
+    $user_airport_tid = $user_information->field_airport[$lang][0]['tid'];
+    if($selected_airport_tid != $user_airport_tid){
+      form_set_error('field_related_airport', 'You cannot enter data for other airport.');
+    }
+  }
+
+  if((in_array('Regional Creator', $user_information->roles)) || (in_array('Regional Publisher', $user_information->roles))){ 
+    $regionTid = $user_information->field_region[$lang][0]['tid'];
+    // Get all terms for The user's region 
+    $airports_list = $functions->aaiGetAirportList($regionTid);    
+    if (!in_array($selected_airport_tid, $airports_list)) {
+      form_set_error('field_related_airport', 'You can only select airports within your region only .');
+    }
+  }
+}
+
+/**
+ *  validate vigilance integrity club document node exist in databse.
+ * @todo
+ *   1) Check node type of vigilance integrity club content type
+ *   2) count the result .  
+ *
+ * @see
+ *  vigilance integrity club node exist on base of node type
+*/
+function aai_validation_integrity_club_validate($form, $form_state) {
+  $functions = AAI::getInstance();
+  $tbl = 'node';
+  $cond_flds = array (
+    'type' => 'vigilance_integrity_club',
+  );
+  $resultClub = $functions->aaiCheckIfNodeExists($tbl, $cond_flds);
+
+  if(arg(0)=='node' && is_numeric(arg(1)) && arg(2) == 'edit') {
+    if ($resultClub > 1) {
+      form_set_error('title', 'Integrity Club Page already exist');
+    }
+  } else {
+    if ($resultClub) {
+      form_set_error('title', 'Integrity Club Page already exist'); 
+    }
+  }
+}
+
+/**
+ *  validate Inner Page Banner Nodes in databse.
+ * @todo
+ *   1) Fetch Nodes .
+ *   2) count the result . 
+ *
+ * @see
+ *  Banner Node exist 
+*/
+function aai_inner_page_banner_validate($form, $form_state) {
+  $functions = AAI::getInstance();
+  $lang = $functions->aaiCurrentLang();
+  $url = $form_state['values']['title'];
+  $tbl = 'node';
+  $cond_flds = array(
+    'type' => 'aai_inner_page_banner',
+    'title' => $url,
+  );
+ 
+  $resultNode = $functions->aaiCheckIfNodeExists($tbl, $cond_flds);
+  if(arg(0)=='node' && is_numeric(arg(1)) && arg(2) == 'edit') {
+    if ($resultNode > 1) {
+      form_set_error('title','Banner already added for this URL.');
+    }
+  }
+  else {
+     if ($resultNode) {
+      form_set_error('title', 'Banner already added for this URL'); 
+     }
+   }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function airports_block_info() {
+  $blocks = array();
+
+  $blocks['airports_detail'] = array(
+    'info' => t('Airport details page'),
+  );
+  $blocks['airports_listings'] = array(
+    'info' => t('Select Airport'),
+  );
+  $blocks['airport_tweets'] = array(
+    'info' => t('Airport Tweets'),
+  );
+  $blocks['airport_facebook_feeds'] = array(
+    'info' => t('Airport Facebook Feeds'),
+  );
+  $blocks['airport_weather'] = array(
+    'info' => t('Airport Weather'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function airports_block_view($block_name = '') {
+  $block = array();
+
+  switch ($block_name) {
+    case 'airports_detail':
+      $block['subject'] = t('');
+      $block['content'] = airport_details();
+      break;
+    case 'airports_listings':
+      $block['subject'] = t('Select Airport');
+      $block['content'] = airport_listings();
+      break;
+    case 'airport_tweets':
+      $block['subject'] = t('Airport Tweets');
+      $block['content'] = airport_tweets();
+      break;
+    case 'airport_facebook_feeds':
+      $block['subject'] = t('Airport Facebook Feeds');
+      $block['content'] = airport_facebook_feeds();
+      break;
+    case 'airport_weather':
+      $block['subject'] = t('');
+      $block['content'] = airport_weather();
+  }
+
+  return $block;
+}
+
+/**
+ * Function to build weather block
+ */
+function airport_weather() {
+  $functions = AAI::getInstance();
+
+  // get airport name
+  if (arg(2) && arg(0) == 'airports') {
+    $airport_name = arg(2);
+  } else if (arg(0) == 'airports') {
+    $airport_name = arg(1);
+  }
+  $airport_name = str_replace('-', ' ', $airport_name);
+  
+  // get weather details for given city/airport
+  $weather = $functions->aaiGetAirportWeather($airport_name);
+  
+  // check if data returned from cache
+  if ($weather->cid) {
+    $weather = $weather->data;
+  }
+
+  // general weather outlook.
+  $weather_desc = ucwords($weather->weather[0]->description);
+  $weather_icon = ucwords($weather->weather[0]->icon);
+  $weather_img = "http://openweathermap.org/img/w/" . $weather_icon . ".png";
+  
+  // get temperatures
+  $weather_temp = $weather->main->temp . ' &deg;C';
+  $weather_temp_min = $weather->main->temp_min . ' &deg;C';
+  $weather_temp_max = $weather->main->temp_max . ' &deg;C';
+  
+  // get generic details: humidity, wind speed etc
+  $weather_humidity = $weather->main->humidity . ' %';
+  $weather_pressure = $weather->main->pressure . ' hpa';
+  $weather_wind_speed = $weather->wind->speed . ' m/s';
+
+  // get sunrise sunset details
+  $weather_date = $weather->dt;
+  $weather_time = date('H:I', $weather_date);
+  $weather_date = date('l, d M Y', $weather_date);
+  $weather_sunrise = $weather->sys->sunrise;
+  $weather_sunrise = date('l, d M Y', $weather_sunrise);
+  $weather_sunset = $weather->sys->sunset;
+  $weather_sunset = date('l, d M Y', $weather_sunset);
+  
+  // get link to show full detail
+  $city_id = $weather->id;
+  $more_info = 'http://openweathermap.org/city/' . $city_id;
+
+  $out = "<div class='aai-weather row'>";
+    $out .= "<div class='weather-head col-md-12'>";
+      $out .= "<div class='weather-left col-md-4'>";
+        $out .= "<div class='weather-img'><img src='". $weather_img ."'></div>";
+        $out .= "<div class='weather-desc'>$weather_desc</div>";
+      $out .= "</div>";
+      $out .= "<div class='weather-right col-md-8'>";
+        $out .= "<div class='weather-dt col-md-12 '>$weather_date</div>";
+        $out .= "<div class='weather-loc col-md-12'>" . ucwords($airport_name) . ", India</div>";
+        //$out .= "<div class='weather-time'>$weather_time</div>";
+      $out .= "</div>";
+    $out .= "</div>";
+    $out .= "<div class='weather-middle col-md-12'>";
+      $out .= "<div class='weather-left col-md-5'>";
+        $out .= "<div class='weather-temp'>$weather_temp</div>";
+      $out .= "</div>";
+      $out .= "<div class='weather-right col-md-7'>";
+        $out .= "<div class='weather-min col-md-4'>Min</div><div class='col-md-8 value'> $weather_temp_min</div>";
+        $out .= "<div class='weather-mix col-md-4'> Max </div><div class='col-md-8 value'>$weather_temp_max</div>";
+      $out .= "</div>";
+    $out .= "</div>";
+    $out .= "<div class='weather-bottom col-md-12'>";
+ 
+        $out .= "<div class='humidity col-md-6'>Humidity</div><div class='value col-md-6'>$weather_humidity</div>";
+        $out .= "<div class='wind col-md-6'>Wind</div><div class='value col-md-6'>$weather_wind_speed</div>";
+
+     
+    $out .= "</div>";
+     $out .= "<div class='source col-md-12'>Source: OpenWeatherMap</div>";
+  $out .= "</div>";
+
+  return $out;
+}
+
+/**
+ * Implements function to get content for 'Airport Details' block.
+ */
+function airport_details() {
+  $functions = AAI::getInstance();
+  //return $airport_details = $functions->aaiAirportDetails();
+  return;
+}
+
+function airport_listings() {
+  $functions = AAI::getInstance();
+  $lang = $functions->aaiCurrentLang();
+  
+  $old_site_base_url = variable_get('aai_old_site_url');
+  $aai_airports = unserialize(variable_get('airport_codes'));
+
+  $sorted_array = array();
+  foreach($aai_airports as $k => $v) {
+    if (strpos($k, '-') === FALSE) {
+      $airport_nm = ucwords(str_replace(' ', '', $v['name']));
+      $sorted_array[$airport_nm] = $k;
+    }
+  }
+  ksort($sorted_array);
+
+  $total_airports = count($sorted_array);
+  $extra_airports = $total_airports % 6;
+  $part_len = floor($total_airports / 6);
+
+  $out = "<div class='col-md-12'>";
+
+  // variable to control loop
+  $last_airport = '';
+  $extra_elements = 0;
+
+  // loop airports to form listing
+  for ($i = 1; $i <= 6; $i++) {
+    $out .= "<div class='col-md-2 col-xs-4'>";
+    $out .= "<ul>";
+    reset($sorted_array);
+    $j = 1;
+    do {
+      if ($j == 1) {
+        if ($last_airport != '') {
+          while ($last_airport != key($sorted_array)) {
+            next($sorted_array);
+          }
+          // move to next airport that is not shown yet
+          next($sorted_array);
+        }
+      }
+      $airport_iata = current($sorted_array);
+      $last_airport = key($sorted_array);
+      $airport_name = ucwords($last_airport);
+      $val = $aai_airports[$airport_iata];
+      if (array_key_exists('redirect_url', $val)) {
+        $airport_url = $old_site_base_url . $val['redirect_url'];
+        $out .= "<li><a href='$airport_url' value = '". strtolower($airport_name) ."'>" . t(ucwords($airport_name)) . "</a></li>";
+      } else {
+        $airport_url = "/airports/" . strtolower($airport_name);
+        $out .= "<li><a href = '$airport_url' value = '". strtolower($airport_name) ."'>" . t(ucwords($airport_name)) . "</a></li>";
+      }
+      next($sorted_array);
+      $j++;
+    } while ($j <= $part_len);
+
+    // check if extra element is to be added
+    if ($extra_elements < $extra_airports) {
+      $airport_iata = current($sorted_array);
+      $last_airport = key($sorted_array);
+      $airport_name = ucwords($last_airport);
+      $val = $aai_airports[$airport_iata];
+      if (array_key_exists('redirect_url', $val)) {
+        $airport_url = $old_site_base_url . $val['redirect_url'];
+        $out .= "<li><a href='$airport_url' value = '". strtolower($airport_name) ."'>" . t(ucwords($airport_name)) . "</a></li>";
+      } else {
+        $airport_url = "/airports/" . strtolower($airport_name);
+        $out .= "<li><a href = '$airport_url' value = '". strtolower($airport_name) ."'>" . t(ucwords($airport_name)) . "</a></li>";
+      }
+      next($sorted_array);
+      $extra_elements++;
+    }
+    $out .= "</ul>";
+    $out .= "</div>";
+  }
+  $out .= "</div>";
+  return $out;
+}
+
+/** 
+ * Implements hook_views_api().
+ */
+function airports_views_api() {
+  return array("api" => "3.0");
+}
+
+/**
+ * Callback function for airport_submenu_detail
+ */
+function airport_submenu_detail() {
+  $request = array();
+  // get post data
+  if (isset($_REQUEST['airport_name'])) {
+    $airport_name = $_REQUEST['airport_name'];
+    $request['airport'] = $airport_name;
+  } else {
+    echo 0;
+    exit;
+  }
+  
+  if (isset($_REQUEST['content_type'])) {
+    $content_type = $_REQUEST['content_type'];
+    $request['type'] = $content_type;
+  } else {
+    echo 0;
+    exit;
+  }
+
+  if (isset($_REQUEST['tab_vocab'])) {
+    $tab_vocab = $_REQUEST['tab_vocab'];
+    $request['vocab'] = $tab_vocab;
+  } else {
+    echo 0;
+    exit;
+  }
+
+  if (isset($_REQUEST['term_name'])) {
+    $term_name = $_REQUEST['term_name'];
+    $request['tt'] = $term_name;
+  } else {
+    echo 0;
+    exit;
+  }
+
+  $functions = AAI::getInstance();
+  $details = $functions->aaiAirportDetails(0, $request);
+  echo $details;
+}
+
+/**
+ * Implementation of hook_views_query_alter
+ * @param type $view
+ * @param type $query 
+ */
+function airports_views_query_alter(&$view, &$query) {
+  Global $user;
+  $user_information = user_load($user->uid);
+  //First get all the airports
+  if(in_array('publisher', $user_information->roles)){
+    $publisher_user = array($user_information->uid);
+  }
+  if(in_array('Regional Publisher', $user_information->roles)){
+    $functions = AAI::getInstance();
+    $lang = $functions->aaiCurrentLang();
+    $regionTid = $user_information->field_region[$lang][0]['tid'];
+    $airports_list = $functions->aaiGetAirportList($regionTid);   
+    //Create below function
+    //get all users  with publiser role whose airport tid is in above airport list
+    $users_list = $functions->aaiGetAirportsPublishers($airports_list);  
+    $publisher_user = $users_list;
+  }
+
+  if ($view->name == 'workbench_moderation' && $view->current_display == 'page_1') {
+    $view->query->where[1]['conditions'][] = array
+     (
+        'field' => 'workbench_moderation_node_history.asid',
+        'value' => $publisher_user,
+        'operator' => 'in',
+     ); 
+  }
+
+  if ($view->name == 'workbench_moderation' && $view->current_display == 'page_2') {
+
+    $view->query->where[1]['conditions'][] = array
+     (
+        'field' => 'workbench_moderation_node_history.asid',
+        'value' => $user->uid,
+        'operator' => '=',
+     ); 
+     //print_r($view->query->where[1]['conditions']);
+  }
+
+}
+
+/**
+ * Implements hook_node_presave().
+ */
+function airports_node_presave($node) {
+  Global $user;
+
+  $functions = AAI::getInstance();
+  $lang = $functions->aaiCurrentLang();
+
+  //check if current user is administrator or 'aai admin'
+  $current_user_uid = $user->uid;
+  $current_user_obj = user_load($current_user_uid);
+  $current_user_roles = $current_user_obj->roles;
+  if((in_array('aai admin', $current_user_roles)) || (in_array('administrator', $current_user_roles))) {
+    return;
+  }
+
+  // variable to get current node type
+  $node_type = $node->type;
+  $content_type_category = '';
+
+  $aai_content_types = array(
+    'emp_corner' => array(
+      'infosarthi_awards',
+      'infosarthi_circular',
+      'infosarthi_department_informatio',
+      'infosarthi_events',
+      'infosarthi_mannual',
+      'infosarthi_reports',
+    ),
+    'corporate' => array(
+      'aai_magazine',
+      'achievements',
+      'articles',
+      'csr_inactivities',
+      'csr_policy',
+      'csr_media_coverage',
+      'careers',
+      'cargo',
+      'certification',
+      'corporate',
+      'current_openings',
+      'investors',
+      'resources',
+      'press_news_event',
+      'rti',
+      'services',
+      'tender',
+      'vigilance',
+      'vigilance_integrity_club',
+      'vigilance_photo_gallery',
+    ),
+    'airport' => array(
+      'airport_achievements',
+      'airport_city_information',
+      'airport_facilities',
+      'airport_news',
+      'airport_passenger_information_fa',
+      'airport_photo_gallery',
+      'airport_transportation',
+      'airports',
+      'airports_faq',
+    ),
+  );
+
+  //  get current node's content type category
+  foreach ($aai_content_types as $category => $types) {
+    if (array_search($node_type, $types) !== FALSE) {
+      $content_type_category = $category;
+      break;
+    }
+  }
+
+  switch ($content_type_category) {
+    case 'emp_corner':
+      // check that user department and content department matches
+
+      // get current state of the node
+      $new_state = $node->workbench_moderation_state_new;
+
+      // variable to ascertain if valid user found
+      $user_is_valid = 0;
+
+      switch ($new_state) {
+        case 'draft':
+        case 'to_be_published':
+          // the node is still with creator. Check if current user is authorized to
+          // add/edit & assign to respective user for moderation
+          if (in_array('CHQ Creator', $current_user_roles)) {
+            $user_is_valid = 1;
+          } else if (in_array('Regional Emp Creator', $current_user_roles) || in_array('Emp Creator', $current_user_roles)) {
+            // node's 'department' should match user dept
+            if (isset($node->field_department[$lang])) {
+              $node_dept = $node->field_department[$lang][0]['tid'];
+            } else {
+              $node_dept = $node->field_department[LANGUAGE_NONE][0]['tid'];
+            }
+
+            // get user department
+            if ($current_user_obj->field_department[$lang]) {
+              $current_user_dept = $current_user_obj->field_department[$lang][0]['tid'];
+            } else {
+              $current_user_dept = $current_user_obj->field_department['en'][0]['tid'];
+            }
+
+            // check if user and node dept. matches
+            if ($current_user_dept == $node_dept) {
+              $user_is_valid = 1;
+            }
+          }
+          
+          // assign node to respective user
+          if ($user_is_valid) {
+            if ($new_state == 'draft') {
+              $node->workbench_assignee = $current_user_uid;
+            } else if ($new_state == 'to_be_published') {
+              // assign node to publisher
+              $uid = $functions->aaiGetEmpNodeAssignee($node, 'publisher');
+              if ($uid) {
+                $node->workbench_assignee = $uid;
+              } else {
+                // if no user found matching the conditions
+                drupal_set_message(t('Oops! it seems we do not have user with required credentials to perform node publish opertaion. Please contact site admin for further assistance.'));
+                drupal_goto('page-not-found');
+                exit;
+              }
+            }
+          }
+          break;
+        case 'published':
+        case 're_check':
+          // here check if current user has permission to publish the node
+          if (in_array('CHQ Publisher', $current_user_roles)) {
+            $user_is_valid = 1;
+          } else if (in_array('Regional Emp Publisher', $current_user_roles) || in_array('Emp Publisher', $current_user_roles)) {
+            // node's 'department' should match user dept
+            if (isset($node->field_department[$lang])) {
+              $node_dept = $node->field_department[$lang][0]['tid'];
+            } else {
+              $node_dept = $node->field_department[LANGUAGE_NONE][0]['tid'];
+            }
+
+            // get user department
+            if ($current_user_obj->field_department[$lang]) {
+              $current_user_dept = $current_user_obj->field_department[$lang][0]['tid'];
+            } else {
+              $current_user_dept = $current_user_obj->field_department['en'][0]['tid'];
+            }
+
+            // check if user and node dept. matches
+            if ($current_user_dept == $node_dept) {
+              $user_is_valid = 1;
+            }
+          }
+
+          // assign node to respective user
+          if ($user_is_valid) {
+            if ($new_state == 'published') {
+              $node->workbench_assignee = $current_user_uid;
+            } else if ($new_state == 're_check') {
+              // assign node to publisher
+              $uid = $node->uid;
+              $node->workbench_assignee = $uid;
+            }
+          }
+          break;
+      }
+
+      // if user is not valid, throw access denied page
+      if (!$user_is_valid) {
+        drupal_set_message(t('You are not authorized to access this page.'));
+        drupal_access_denied();
+        exit;
+      }
+      break;
+    case 'corporate':
+      // get current state of the node
+      $new_state = $node->workbench_moderation_state_new;
+
+      // variable to ascertain if valid user found
+      $user_is_valid = 0;
+
+      switch ($new_state) {
+        case 'draft':
+        case 'to_be_published':
+          // the node is still with creator. Check if current user is authorized to
+          // add/edit & assign to respective user for moderation
+          $user_is_valid = $functions->aaiCheckCorporateContentPermission($node, $current_user_obj);
+
+          // assign node to respective user
+          if ($user_is_valid) {
+            if ($new_state == 'draft') {
+              $node->workbench_assignee = $current_user_uid;
+            } else if ($new_state == 'to_be_published') {
+              // assign node to publisher
+              $uid = $functions->aaiGetCorporateNodeAssignee($node, 'publisher');
+              if ($uid) {
+                $node->workbench_assignee = $uid;
+              } else {
+                // if no user found matching the conditions
+                drupal_set_message(t('Oops! it seems we do not have user with required credentials to perform node publish opertaion. Please contact site admin for further assistance.'));
+                drupal_goto('page-not-found');
+                exit;
+              }
+            }
+          }
+          break;
+        case 'published':
+        case 're_check':
+          // here check if current user has permission to publish the node
+          if (in_array('CHQ Publisher', $current_user_roles)) {
+            $user_is_valid = 1;
+          } else if (in_array('Regional Publisher', $current_user_roles) || in_array('Publisher', $current_user_roles)) {
+            // get valid department tid
+            $user_is_valid = $functions->aaiCheckCorporateContentPermission($node, $current_user_obj);
+          }
+
+          // assign node to respective user
+          if ($user_is_valid) {
+            if ($new_state == 'published') {
+              $node->workbench_assignee = $current_user_uid;
+            } else if ($new_state == 're_check') {
+              // assign node to publisher
+              $uid = $node->uid;
+              $node->workbench_assignee = $uid;
+            }
+          }
+          break;
+      }
+      
+      // if user is not valid, throw access denied page
+      if (!$user_is_valid) {
+        drupal_set_message(t('You are not authorized to access this page.'));
+        drupal_access_denied();
+        exit;
+      }
+      break;
+    case 'airport':
+      // if current node is for airport, user airport shuold match 
+      // node airport in case user is 'Airport Creator'
+      // for 'Regional Airport Creatoe' airport should br is user's region
+      // else CHQ Creator can add any node
+
+      $user_is_valid = 0;
+      $node_airport_tid = $node->field_related_airport[$lang][0][tid];
+
+      // get current state of the node
+      $new_state = $node->workbench_moderation_state_new;
+
+      switch ($new_state) {
+        case 'draft':
+        case 'to_be_published':
+          // the node is still with creator. Check if current user is authorized to
+          // add/edit & assign to respective user for moderation
+          if (in_array('CHQ Creator', $current_user_roles)) {
+            $user_is_valid = 1;
+          } else if (in_array('Regional Airport Creator', $current_user_roles)) {
+            // for regional creator node's 'airport' should be in user region
+            $airport_term = taxonomy_term_load($node_airport_tid);
+            if ($airport_term->field_region[$lang]) {
+              $airport_region = $airport_term->field_region[$lang][0]['tid'];
+            } else {
+              $airport_region = $airport_term->field_region[LANGUAGE_NONE][0]['tid'];
+            }
+
+            // get current user region
+            if ($current_user_obj->field_region[$lang]) {
+              $current_user_region = $current_user_obj->field_region[$lang][0]['tid'];
+            } else {
+              $current_user_region = $current_user_obj->field_region['en'][0]['tid'];
+            }
+
+            // check if user and node region matches
+            if ($current_user_region == $airport_region) {
+              $user_is_valid = 1;
+            }
+          } else if (in_array('Airport Creator', $current_user_roles)) {
+            // in case of 'Airport Creator' user airport and node airport must match
+            if ($current_user_obj->field_airport[$lang]) {
+              $current_user_airport = $current_user_obj->field_airport[$lang][0]['tid'];
+            } else {
+              $current_user_airport = $current_user_obj->field_airport['en'][0]['tid'];
+            }
+
+            if ($current_user_airport == $node_airport_tid) {
+              $user_is_valid = 1;
+            }
+          }
+
+          // assign node to respective user
+          if ($user_is_valid) {
+            if ($new_state == 'draft') {
+              $node->workbench_assignee = $current_user_uid;
+            } else if ($new_state == 'to_be_published') {
+              // assign node to publisher
+              $uid = $functions->aaiGetAirpotNodeAssignee($node, 'publisher');
+              if ($uid) {
+                $node->workbench_assignee = $uid;
+              } else {
+                // if no user found matching the conditions
+                drupal_set_message(t('Oops! it seems we do not have user with required credentials to perform node publish opertaion. Please contact site admin for further assistance.'));
+                drupal_goto('page-not-found');
+                exit;
+              }
+            }
+          }
+          break;
+        case 'published':
+        case 're_check':
+          // here check if current user has permission to publish the node
+          if (in_array('CHQ Publisher', $current_user_roles)) {
+            $user_is_valid = 1;
+          } else if (in_array('Regional Airport Publisher', $current_user_roles)) {
+            // for regional creator node's 'airport' should be in user region
+            $airport_term = taxonomy_term_load($node_airport_tid);
+            if ($airport_term->field_region[$lang]) {
+              $airport_region = $airport_term->field_region[$lang][0]['tid'];
+            } else {
+              $airport_region = $airport_term->field_region[LANGUAGE_NONE][0]['tid'];
+            }
+
+            // get current user region
+            if ($current_user_obj->field_region[$lang]) {
+              $current_user_region = $current_user_obj->field_region[$lang][0]['tid'];
+            } else {
+              $current_user_region = $current_user_obj->field_region['en'][0]['tid'];
+            }
+
+            // check if user and node region matches
+            if ($current_user_region == $airport_region) {
+              $user_is_valid = 1;
+            }
+          } else if (in_array('Airport Publisher', $current_user_roles)) {
+            // in case of 'Airport Creator' user airport and node airport must match
+            if ($current_user_obj->field_airport[$lang]) {
+              $current_user_airport = $current_user_obj->field_airport[$lang][0]['tid'];
+            } else {
+              $current_user_airport = $current_user_obj->field_airport['en'][0]['tid'];
+            }
+
+            if ($current_user_airport == $node_airport_tid) {
+              $user_is_valid = 1;
+            }
+          }
+
+          // assign node to respective user
+          if ($user_is_valid) {
+            if ($new_state == 'published') {
+              $node->workbench_assignee = $current_user_uid;
+            } else if ($new_state == 're_check') {
+              // assign node to publisher
+              $uid = $node->uid;
+              $node->workbench_assignee = $uid;
+            }
+          }
+          break;
+      }
+
+      // if user is not valid, throgh access denied page
+      if (!$user_is_valid) {
+        drupal_set_message(t('You are not authorized to access this page.'));
+        drupal_access_denied();
+        exit;
+      }
+      break;
+  }
+}
+
+/**
+ * Callback for aai_assign_airport_code to portal configurations
+ */
+function aai_assign_airport_code() {
+  $functions = AAI::getInstance();
+  $lang = $functions->aaiCurrentLang();
+  $apiFor = arg(2);
+  
+  $aai_airports = unserialize(variable_get('airport_codes'));
+  ksort($aai_airports);
+  
+  $out = "<select id='edit-api-airport-codes'>";
+  $out .= "<option value='_none'>" . t('Please select airport') . "</option>";
+
+  foreach ($aai_airports as $ky => $val) {
+    if (is_array($val)) {
+      $airport_name = t(ucwords($val['name']));
+    } else {
+      $airport_name = t(ucwords($val));
+    }
+    $out .= "<option value='$ky'>$airport_name</option>";
+  }
+  $out .= "</select>";
+  $out .= "<input type='hidden' id='aai-api-for' value='$apiFor' />";
+
+  return $out;
+}
+
+/**
+ * Callback for Display Portal Settings Form 
+ * Session set for passing airport code to configuration page
+ */
+function aai_setApiCode() {
+  if(isset($_REQUEST['airport_code'])) {
+    $_SESSION['aai_api_airportcode'] = $_REQUEST['airport_code'];
+    $_SESSION['api_for'] = $_REQUEST['api_for'];
+    echo 1;
+  } else {
+    echo 0;
+  }
+}
+
+/**
+* Callback for choose airport for social media configuration page  
+*/
+function administer_social_media_api_twitter() {
+  $aai_airports = unserialize(variable_get('airport_codes'));
+  ksort($aai_airports);
+
+  drupal_add_js(array('api_for'=> 'twitter'), 'setting');
+
+
+  foreach ($aai_airports as $ky => $val) {
+    if (is_array($val)) {
+      $airport_name = t(ucwords($val['name']));
+      $options[$ky] = $airport_name;
+    } else {
+      $airport_name = t(ucwords($val));
+      $options[$ky] .= $airport_name;
+    }
+  }
+
+  $form['airport_codes'] = array(
+    '#title' => t('Select Airport'),
+    '#type' => 'select',
+    '#options' => $options,
+    '#required' => TRUE,
+    '#attributes' => array('id' => 'edit-api-airport-codes'),
+  );
+  $form['aai_twitter_oauth_access_token'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Access Token'),
+    '#description' => t('Please Provide Oauth Access Token.'),
+    '#size' => 40,
+    //'#default_value' => variable_get('aai_'.$airport.'_twitter_oauth_access_token', FALSE),
+    '#required' => TRUE,
+    //'#prefix' => $out,
+  );
+  $form['aai_twitter_oauth_access_token_secret'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Access Token Secret'),
+    '#description' => t('Please Provide Oauth Access Token Secret.'),
+    '#size' => 40,
+    //'#default_value' => variable_get('aai_'.$airport.'_twitter_oauth_access_token_secret', FALSE),
+    '#required' => TRUE,
+  );
+  $form['aai_twitter_consumer_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Consumer Key'),
+    '#description' => t('Please Provide Consumer Key.'),
+    '#size' => 40,
+    //'#default_value' => variable_get('aai_'.$airport.'_twitter_consumer_key', FALSE),
+    '#required' => TRUE,
+  );
+  $form['aai_twitter_consumer_secret'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Consumer Secret'),
+    '#description' => t('Please Provide Consumer Secret.'),
+    '#size' => 40,
+    //'#default_value' => variable_get('aai_'.$airport.'_twitter_consumer_secret', FALSE),
+    '#required' => TRUE,
+  );
+  $form['submit'] = array (
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  return $form;
+}
+
+/**
+ * Submit handler for administer_social_media_api_twitter().
+ */
+function administer_social_media_api_twitter_submit($form, &$form_state) {
+  $airport_code = strtolower($form_state['values']['airport_codes']);
+  $airport_oauth_access_token = trim($form_state['values']['aai_twitter_oauth_access_token']);
+  $airport_oauth_access_token_secret = trim($form_state['values']['aai_twitter_oauth_access_token_secret']);
+  $airport_consumer_key = trim($form_state['values']['aai_twitter_consumer_key']);
+  $airport_consumer_secret = trim($form_state['values']['aai_twitter_consumer_secret']);
+
+  $var = 'aai_twitter_oauth_access_token_' . $airport_code;
+  variable_set($var, $airport_oauth_access_token);
+
+  $var = 'aai_twitter_oauth_access_token_secret_' . $airport_code;
+  variable_set($var, $airport_oauth_access_token_secret);
+
+  $var = 'aai_twitter_consumer_key_' . $airport_code;
+  variable_set($var, $airport_consumer_key);
+
+  $var = 'aai_twitter_consumer_secret_' . $airport_code;
+  variable_set($var, $airport_consumer_secret);
+
+  drupal_set_message(t('API keys set successfully.'));
+}
+
+function check_social_api_existence() {
+  $airport_code = strtolower($_REQUEST['airport_code']);
+  $api_for = $_REQUEST['api_for'];
+  $out = '';
+  if ($api_for == 'twitter') {
+    $tmp = variable_get('aai_twitter_oauth_access_token_' . $airport_code);
+    if ($tmp != '') {
+      $var = 'aai_twitter_oauth_access_token_secret_' . $airport_code;
+      $out = variable_get($var);
+      
+      $var = 'aai_twitter_oauth_access_token_' . $airport_code;
+      $out .= '|-~|' . variable_get($var);
+
+      $var = 'aai_twitter_consumer_key_' . $airport_code;
+      $out .= '|-~|' . variable_get($var);
+
+      $var = 'aai_twitter_consumer_secret_' . $airport_code;
+      $out .= '|-~|' . variable_get($var);
+    }
+  } else if ($api_for == 'facebook') {
+    $tmp = variable_get('aai_facebook_page_id_' . $airport_code);
+    if ($tmp != '') {
+      $var = 'aai_facebook_app_id_' . $airport_code;
+      $out = variable_get($var);
+
+      $var = 'aai_facebook_page_id_' . $airport_code;
+      $out .= '|-~|' . variable_get($var);
+
+      $var = 'aai_facebook_access_token_' . $airport_code;
+      $out .= '|-~|' . variable_get($var);
+
+      $var = 'aai_facebook_app_secret_' . $airport_code;
+      $out .= '|-~|' . variable_get($var);
+
+      $var = 'aai_facebook_page_url_' . $airport_code;
+      $out .= '|-~|' . variable_get($var);
+    }
+  }
+  echo $out;
+}
+
+/**
+* Callback for choose airport for social media configuration page  
+*/
+function administer_social_media_api_facebook() {
+  $aai_airports = unserialize(variable_get('airport_codes'));
+  ksort($aai_airports);
+
+  drupal_add_js(array('api_for'=> 'facebook'), 'setting');
+
+
+  foreach ($aai_airports as $ky => $val) {
+    if (is_array($val)) {
+      $airport_name = t(ucwords($val['name']));
+      $options[$ky] = $airport_name;
+    } else {
+      $airport_name = t(ucwords($val));
+      $options[$ky] .= $airport_name;
+    }
+  }
+
+  $form['airport_codes'] = array(
+    '#title' => t('Select Airport'),
+    '#type' => 'select',
+    '#options' => $options,
+    '#required' => TRUE,
+    '#attributes' => array('id' => 'edit-api-airport-codes'),
+  );
+  $form['aai_facebook_page_id'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Page Id'),
+    '#description' => t('Please Provide Facebook Page Id.'),
+    '#size' => 40,
+    //'#default_value' => variable_get('aai_'.$airport.'_twitter_oauth_access_token', FALSE),
+    '#required' => TRUE,
+    //'#prefix' => $out,
+  );
+  $form['aai_facebook_app_id'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Facebook App Id'),
+    '#description' => t('Please Provide Facebook App Id.'),
+    '#size' => 40,
+    //'#default_value' => variable_get('aai_'.$airport.'_twitter_oauth_access_token_secret', FALSE),
+    '#required' => TRUE,
+  );
+  $form['aai_facebook_app_secret'] = array(
+    '#type' => 'textfield',
+    '#title' => t('App Secret'),
+    '#description' => t('Please Provide Facebook App Secret.'),
+    '#size' => 40,
+    //'#default_value' => variable_get('aai_'.$airport.'_twitter_consumer_key', FALSE),
+    '#required' => TRUE,
+  );
+  $form['aai_facebook_access_token'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Access Token'),
+    '#description' => t('Please Provide Access Token.'),
+    '#size' => 40,
+    //'#default_value' => variable_get('aai_'.$airport.'_twitter_consumer_secret', FALSE),
+    '#required' => TRUE,
+  );
+  $form['aai_facebook_page_url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Facebook URL'),
+    '#description' => t('Please Provide Facebook Page Url For Airport.'),
+    '#size' => 40,
+    //'#default_value' => variable_get('aai_'.$airport.'_twitter_consumer_secret', FALSE),
+    '#required' => TRUE,
+  );
+  $form['submit'] = array (
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  return $form;
+}
+
+/**
+ * Submit handler for administer_social_media_api_twitter().
+ */
+function administer_social_media_api_facebook_submit($form, &$form_state) {
+  $airport_code = strtolower($form_state['values']['airport_codes']);
+  $airport_facebook_page_id = trim($form_state['values']['aai_facebook_page_id']);
+  $airport_facebook_app_id = trim($form_state['values']['aai_facebook_app_id']);
+  $airport_facebook_app_secret = trim($form_state['values']['aai_facebook_app_secret']);
+  $airport_facebook_access_token = trim($form_state['values']['aai_facebook_access_token']);
+  $airport_facebook_page_url = $form_state['values']['aai_facebook_page_url'];
+ // out($airport_facebook_page_url);die;
+
+  $var = 'aai_facebook_page_id_' . $airport_code;
+  variable_set($var, $airport_facebook_page_id);
+
+  $var = 'aai_facebook_app_id_' . $airport_code;
+  variable_set($var, $airport_facebook_app_id);
+
+  $var = 'aai_facebook_app_secret_' . $airport_code;
+  variable_set($var, $airport_facebook_app_secret);
+
+  $var = 'aai_facebook_access_token_' . $airport_code;
+  variable_set($var, $airport_facebook_access_token);
+
+  $var = 'aai_facebook_page_url_' . $airport_code;
+  variable_set($var, $airport_facebook_page_url);
+
+  drupal_set_message(t(' Facebook API keys set successfully.'));
+}
+
+/**
+* Callback for social media system setting form and pass result to function aai_SocialMediaApiConfig
+*/
+function portal_setting_forms() {
+  $functions = AAI::getInstance();
+  return $functions->aai_twitter_system_setting_form();
+}
+
+/**
+ * Implements function to get tweets for Airports .
+ */
+function airport_tweets() {
+  $airport_code = 'trv';
+  $var = 'aai_twitter_oauth_access_token_' . $airport_code;
+  $airport_oauth_access_token = variable_get($var);
+  
+  $var = 'aai_twitter_oauth_access_token_secret_' . $airport_code;
+  $airport_oauth_access_token_secret = variable_get($var);
+
+  $var = 'aai_twitter_consumer_key_' . $airport_code;
+  $airport_consumer_key = variable_get($var);
+
+  $var = 'aai_twitter_consumer_secret_' . $airport_code;
+  $airport_consumer_secret = variable_get($var);
+
+  $url = "https://api.twitter.com/1.1/statuses/user_timeline.json";
+  $oauth_access_token = $airport_oauth_access_token;
+  $oauth_access_token_secret = $airport_oauth_access_token_secret;
+  $consumer_key = $airport_consumer_key;
+  $consumer_secret = $airport_consumer_secret;
+  $oauth = array(
+    'oauth_consumer_key' => $consumer_key,
+    'oauth_nonce' => time(),
+    'oauth_signature_method' => 'HMAC-SHA1',
+    'oauth_token' => $oauth_access_token,
+    'oauth_timestamp' => time(),
+    'oauth_version' => '1.0',
+  );
+  $functions = AAI::getInstance();
+  $base_info = $functions->aai_buildBaseString($url, 'GET', $oauth);
+  $composite_key = rawurlencode($consumer_secret) . '&' . rawurlencode($oauth_access_token_secret);
+  $oauth_signature = base64_encode(hash_hmac('sha1', $base_info, $composite_key, true));
+  $oauth['oauth_signature'] = $oauth_signature;
+  // Make requests
+  $functions = AAI::getInstance();
+  $requests = $functions->aai_buildAuthorizationHeader($oauth);
+  $header = array($requests, 'Expect:');
+  $options = array( 
+    CURLOPT_HTTPHEADER => $header,
+    //CURLOPT_POSTFIELDS => $postfields,
+    CURLOPT_HEADER => false,
+    CURLOPT_URL => $url,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_SSL_VERIFYPEER => false
+  );
+
+  $feed = curl_init();
+  curl_setopt_array($feed, $options);
+  $json = curl_exec($feed);
+  curl_close($feed);
+
+  $twitter_data = json_decode($json);
+  foreach($twitter_data as $tweets) {
+    // user data
+    $profile_photo=$tweets->user->profile_image_url_https;
+    $name=$tweets->user->name;
+    $screen_name=$tweets->user->screen_name;
+    echo "<div class='overflow-hidden'>";
+    // show picture
+    echo "<div class='tweet-image'>";
+    echo "<img width='50' height='50' src='{$profile_photo}' class='img-thumbnail' />";
+    echo "</div>";
+    // show tweet content
+    echo "<div class='tweet-text'>";
+    // show name and screen name
+    echo "<h4 class='margin-top-4px'>";
+    echo "<a href='https://twitter.com/$screen_name'>$name</a> ";
+    echo "<span class='color-gray'>@$screen_name</span>";
+    echo "</h4>";
+    // show tweet text
+    echo "<div class='margin-zero'>";
+    // get tweet text
+    $tweet_text = $tweets->text;
+    // make links clickable
+    $tweet_text = preg_replace('@(https?://([-\w\.]+)+(/([\w/_\.]*(\?\S+)?(#\S+)?)?)?)@', '<a href="$1" target="_blank">$1</a>', $tweet_text);
+    // output
+    echo $tweet_text;
+    echo "</div>";
+    echo "</div>";
+    if(isset($tweets->entities->media)){
+      $media_url = $tweets->entities->media['0']->media_url;
+      echo "<img src='$media_url' width='30%' height='30%' />";
+    }
+    echo "</div>";
+    echo "<hr />";
+  }
+}
+
+/**
+ * Implements function to get Feeds from Facebook for Airports .
+ */
+function airport_facebook_feeds(){
+  $airport_code = 'trv';
+  $var = 'aai_facebook_page_id_' . $airport_code;
+  $airport_facebook_page_id = variable_get($var);
+
+  $var = 'aai_facebook_app_id_' . $airport_code;
+  $airport_facebook_app_id = variable_get($var);
+
+  $var = 'aai_facebook_app_secret_' . $airport_code;
+  $airport_facebook_app_secret = variable_get($var);
+
+  $var = 'aai_facebook_access_token_' . $airport_code;
+  $airport_facebook_access_token = variable_get($var);
+
+  $page_title = "Facebook Page Feed";
+  echo "<h1 class='page-header'>$page_title</h1>";
+  $fb_page_id = $airport_facebook_page_id;
+  $profile_photo_src = "https://graph.facebook.com/$fb_page_id/picture?type=square";
+  $access_token = $airport_facebook_access_token;
+  $fields = "id,message,picture,link,name,description,type,icon,created_time,from,object_id,actions,likes,comments";
+  $limit = 50;
+  $json_link = "https://graph.facebook.com/$airport_facebook_page_id/feed?access_token=$airport_facebook_access_token&fields=$fields&limit={$limit}";
+  $json = file_get_contents($json_link);
+
+  $obj = json_decode($json, true);
+  
+  $feed_item_count = count($obj['data']);
+
+  for($x=0; $x<$feed_item_count; $x++){
+
+  // to get the post id
+  $id = $obj['data'][$x]['id'];
+  $post_id_arr = explode('_', $id);
+  $post_id = $post_id_arr[1];
+
+  // user's custom message
+  $message = $obj['data'][$x]['message'];
+  
+  // picture from the link
+  $picture = $obj['data'][$x]['picture'];
+  $picture_url_arr = explode('&url=', $picture);
+  $picture_url = urldecode($picture_url_arr[1]);
+  $picture_links = $obj['data'][$x]['actions'][0]['link'];
+  // link posted
+  $link = $obj['data'][$x]['link'];
+
+  // name or title of the link posted
+  $name = $obj['data'][$x]['name'];
+
+  $description = $obj['data'][$x]['description'];
+  $type = $obj['data'][$x]['type'];
+  $like = $obj['data'][$x]['likes']['data'];
+  $comments = $obj['data'][$x]['comments']['data'];
+  $total_comments = count($comments);
+  $total_likes = count($like);
+  
+  // when it was posted
+  $created_time = $obj['data'][$x]['created_time'];
+  $converted_date_time = date( 'Y-m-d H:i:s', strtotime($created_time));
+ // $ago_value = timeago($converted_date_time);
+  
+  // fromtimeago
+  $page_name = $obj['data'][$x]['from']['name'];
+
+  // useful for photo
+  $object_id = $obj['data'][$x]['object_id'];
+  echo "<div class='row'>";
+  echo "<div class='col-md-4'>";
+  echo "<div class='profile-info'>";
+  echo "<div class='profile-photo'>";
+  echo "<img width='40px' height='40px' src='$profile_photo_src' />&nbsp;&nbsp<a href='https://fb.com/$fb_page_id' target='_blank'>$page_name</a> ";
+  echo "<div class='time-ago'>'safsa'</div>";
+          //echo "shared a ";
+  if($type=="status"){
+    $link="https://www.facebook.com/$fb_page_id/posts/$post_id";
+  }
+  echo "</div>";
+  echo "</div>";
+  echo "</div>";
+  echo "<div class='profile-message'>$message</div>";
+  echo "<div class='col-md-8'>";
+  echo "<a href='$link' target='_blank' class='post-link'>";
+  echo "<div class='post-content'>";
+  if($type=="status"){
+    echo "<div class='post-status'>";
+    echo "View on Facebook";
+    echo "</div>";
+  }
+  else if($type=="photo"){
+    echo "<img src='https://graph.facebook.com/$object_id/picture' />";
+  }
+  else{
+    if($picture_url){
+      echo "<div class='post-picture'>";
+      if(isset($picture_links)){
+        echo "<a href='$picture_links' target='_blank'><img src='$picture' /></a>";
+      }
+      echo "</div>";
+    } 
+    echo "<div class='post-info'>";
+    echo "<div class='post-info-name'>$name</div>";
+    echo "</div>";
+  }
+  echo "</div>";
+  echo "</a>";
+  if($total_likes > 0){
+    echo 'Like:'.$total_likes;
+  }
+  if($total_comments > 0){
+    echo 'Comments:'.$total_comments;
+  }
+  echo "</div>";
+  echo "</div>";
+  echo "</div>";
+  echo "<hr />";
+ }
+}
+
+function transport_layout() {
+  $airport_name = arg(2);
+  global $base_url;
+  $functions = AAI::getInstance();
+  $lang = $functions->aaiCurrentLang();
+  $vocab_name = 'Airport Transports';
+  $vid = $functions->aaiGetVocabDetailByName($vocab_name, array('vid'));
+  $vid = $vid['vid'];
+  // Get Parent Terms of Vacablary Transport
+  $parent_tids = taxonomy_get_tree($vid,0, 1, 1);
+  foreach($parent_tids as $key=> $ptid){
+    $ptid= $ptid->tid;
+    $parents_termids[] =$ptid; 
+  }
+  
+  $term_name = arg(2);
+  $airport_tid_detail = taxonomy_get_term_by_name($term_name);
+  foreach ($airport_tid_detail as $airport_value) {
+    $airport_tid =$airport_value->tid;
+  }
+  
+  $node_details = db_select('field_data_field_related_airport', 'ra')
+  ->fields('ra', array('entity_id'))
+  ->condition('field_related_airport_tid  ', $airport_tid,'=')
+  ->condition('bundle  ', 'airport_transportation','=')
+  ->execute()
+  ->fetchAssoc();
+   
+  $node_id = $node_details['entity_id'];
+  if($node_id) {
+    $node = node_load($node_id);
+	//	out($node);die;
+    $field_collection_items = field_get_items('node', $node, 'field_transportation');
+    foreach ($field_collection_items as $fields) {
+      $tmp = entity_load('field_collection_item', array($fields['value']));
+      $tmp = current($tmp);
+      $fld_tids = taxonomy_get_parents($tmp->field_transportation_type[$lang][0]['tid']);
+      foreach($fld_tids as $fld_key => $fld_value ){
+        $newflds_tid[] = $fld_value->tid;
+        $final_fctids = array_unique($newflds_tid);
+      }
+    }
+  $tdescription = "<div class='transportdetails'>" . $node->field_transport_description[$lang][0]['value'] . "</div>";
+    foreach($final_fctids as $term_value) {
+      $term_details = taxonomy_term_load($term_value);
+      $transport_image = $term_details->field_term_default_image[$lang][0]['filename'];	  
+      $tdescription .="<div class='row'><div class='col-md-12'>";
+      $transport_name = ucwords(str_replace(" ", "-", $term_details->name));
+      $timage = '/sites/default/files/term_default_images/'.$transport_image;
+      $out .= "<div class='col-md-4'>
+        <a class='colorbox-load' href='$base_url/$lang/airports/transport-details/$airport_name/$transport_name'>
+        <img src = $timage  class='img-responsive'/>
+        <div class = 'transport-text'>" . $term_details->name . "</div></a></div>";   
+    }
+    $out .=" </div></div> ";
+    return $tdescription.$out;
+  } else {
+  return t("No data available! We are in the process of updating content, inconvenience is regreted. Please visit this section again later.");
+  }
+}
+
+function airport_menu_details($airport_name) {
+  global $base_url;
+
+  $functions = AAI::getInstance();
+  $lang = $functions->aaiCurrentLang();
+  $theme_url_current = $base_url . base_path() . path_to_theme() . "/templates";
+  $airports_base_url = "$base_url/$lang/airports";
+
+  $tabs_passenger_id = $functions->getFirstlinkId('passenger-info');
+  $tabs_cityinfo_id = $functions->getFirstlinkId('city-info');
+
+
+  $html = "<ul class='nav navbar-nav'>
+    <li class='active'><a href='$airports_base_url/$airport_name'>".t('Home')."</a></li>
+  </ul>";
+
+
+  // get all airports for which FIDS data is available
+  $fids_api_urls = unserialize(variable_get('fids_xml_feeds'));
+ 
+  foreach ($fids_api_urls as $key => $value) {  
+    $tmp_airport_name = strtolower($value['name']);
+    $airport_setting[] = strtolower($tmp_airport_name);
+  }
+
+  // 'Flight' menu item will only be shown for airports for which FIDS data 
+  // is available
+  if(in_array(strtolower($airport_name), $airport_setting)) {
+    $html .= "<ul class='nav navbar-nav'>
+    <li class='dropdown mega-dropdown'><a href='$airports_base_url/flights/$airport_name' class='dropdown-toggle' >".t('Flight')."</a></li>
+    </ul>";
+  }
+
+  $html .= "<ul class='nav navbar-nav'>
+    <li class='dropdown mega-dropdown'>
+      <a href='$airports_base_url/passenger-info/$airport_name' class='dropdown-toggle' data-target='#tab-$tabs_passenger_id' data-toggle='dropdown'>".t('Passenger Information')."</a>";
+  $html .= $functions->aaiGetSubMenu('passenger-info');
+
+  $html .= "</li></ul>"; 
+
+  $html .= "<ul class='nav navbar-nav'>
+    <li class='dropdown mega-dropdown'>
+      <a href='$airports_base_url/transport/$airport_name' class=dropdown-toggle'>".t('Transport')."</a>";
+
+  $html .= "</li></ul>"; 
+  $html .= "<ul class='nav navbar-nav'>
+    <li class='dropdown mega-dropdown'>
+      <a href='$airports_base_url/city-info/$airport_name' class=dropdown-toggle'  data-target='#tab-$tabs_cityinfo_id' data-toggle='dropdown'>".t('City Information')."</a>";
+        $html .= $functions->aaiGetSubMenu('city-info');
+  $html .= "</li></ul>"; 
+  $html .= "<ul class='nav navbar-nav'>
+    <li class=''> <a href='$airports_base_url/fact-sheet/$airport_name' class='dropdown-toggle'>".t('Fact Sheet')."</a></li></ul>";
+  $html .= "<ul class='nav navbar-nav'>
+    <li class=''> <a href='$airports_base_url/security-info/$airport_name' class='dropdown-toggle'>".t('Security Information')."</a></li></ul>";            
+ 
+  //$html .= $sub_items;
+  return $html;
+}
+
+//get Airport list according to Regiona
+function regions_airport(){
+ $region_tid = $_REQUEST['region_tid'];
+ $functions = AAI::getInstance();
+ $lang = $functions->aaiCurrentLang();
+ $query = db_select('field_data_field_region', 'fr');
+ $query->join('taxonomy_term_data', 'ttd', 'ttd.tid = fr.entity_id');
+ $query->fields('fr', array('entity_id'));
+ $query->fields('ttd', array('tid','name'));
+ $query->condition('fr.bundle','auto_created_voc9_635');
+ $query->condition('fr.language', $lang);
+ $query->condition('fr.field_region_tid', $region_tid);
+ $result = $query->execute()->fetchAll();
+ foreach($result as $key => $airport_name){
+  $airport_value[$airport_name->tid]['value'] = $airport_name->name;
+ }
+ echo json_encode($airport_value);
+
+}

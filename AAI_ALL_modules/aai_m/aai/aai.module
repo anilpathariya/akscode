@@ -1,0 +1,418 @@
+<?php
+/**
+ * Implements hook_menu().
+ */
+function aai_menu() {
+  $items = array();
+
+  $items['admin/aai/config'] =  array(
+    'title' => t('RTI Intro Text Configurations'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('administer_aai_config'),
+    'access arguments' => array('administer configurations page'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+* Permission for social media page configrations menus
+*/
+function aai_permission() {
+  return array(
+    'administer configurations page' => array(
+      'title' => t('AAI generic configurations'),
+      'description' => t('Perform basic configuration tasks.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function aai_form_alter(&$form, $form_state, $form_id) {
+  /*out($form);
+  echo $form_id; die;
+  if ($form_id == 'aai_magazine_node_form') {
+    //$form['#validate'][] = '__aai_validate_moderation';
+  }*/
+}
+
+/**
+ * 
+ */
+function __aai_validate_moderation($form, $form_state) {
+  out($form_state); die;
+}
+
+/**
+ * Function to build site configuration form.
+ */
+function administer_aai_config() {
+  // fields for Twitter API Confugrations
+  $form['aai_site_maintainer'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Site Maintainer/Admin Email ID'),
+    '#size' => 80,
+    '#default_value' => variable_get('aai_site_maintainer', 'test@test.org'),
+    '#required' => TRUE,
+  );
+
+  $form["aai_fs_rti_intro"] = array(
+    '#type' => 'fieldset',
+    '#title' => t('RTI Intro Configuration'),
+    '#collapsible' => true,
+    '#collapsed' => TRUE,
+  );
+  $form["aai_fs_rti_intro"]['rti_intro_text_en'] = array(
+    '#type' => 'textarea',
+    '#title' => t('RTI Intro Text (English)'),
+    '#description' => t('Please Provide RTI Intro Text in English.'),
+    '#size' => 40,
+    '#default_value' => variable_get('rti_intro_text_en', FALSE),
+    '#required' => TRUE,
+  );
+  $form["aai_fs_rti_intro"]['rti_intro_text_hi'] = array(
+    '#type' => 'textarea',
+    '#title' => t('RTI Intro Text (Hindi)'),
+    '#description' => t('Please Provide RTI Intro Text in Hindi.'),
+    '#size' => 40,
+    '#default_value' => variable_get('rti_intro_text_hi', FALSE),
+    '#required' => TRUE,
+  );
+
+  // fieldset for sms api details
+  $form["airport_notification"] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Notification Configuration'),
+    '#collapsible' => true,
+    '#collapsed' => TRUE,
+  );
+  $form["airport_notification"]['num_days'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Enter Number of Days'),
+    '#description' => t('Before Content Expiry'),
+    '#size' => 40,
+    '#default_value' => variable_get('num_days', ''),
+  );
+  $form["airport_notification"]['notification_num'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of notification'),
+    '#description' => t('Enter 0 (Zero) for no limit'),
+    '#size' => 40,
+    '#default_value' => variable_get('notification_num', ''),
+  );
+
+  return system_settings_form($form);
+}
+
+
+function display_menu($menu_name = "menu-menu-main") {
+  global $base_url,$language;
+  $code = $language->language;
+  $main_menu_tree = menu_tree_all_data($menu_name, null, 3);
+  $class = "nav navbar-nav";
+  $lavel_id = 1;
+  $menuarray = render_menu_tree($main_menu_tree, $class, $lavel_id,$code);
+  return $menuarray;
+}
+
+function get_submenu($menu_tree,$lang,$depth,$pid) { 
+  if(count($menu_tree) > 0) {
+    if($depth < 2) {
+      print '<ul class="dropdown-menu mega-dropdown-menu row" style="display: none;">
+      <li class="level-one col-md-4 col-sm-5">';
+      $class2 = 3;
+      render_menu_tree($menu_tree, $class2, 2, $lang);
+      print '</li><li class="level-two col-md-8 col-sm-7">'; 
+      echo render_menu_images($menu_tree, $lang, $pid); 
+      print '</li></ul>';
+    }
+  }
+}
+
+function render_menu_images($menu_tree, $lang, $plid) {
+  global $base_url;
+  $menu_link_id = 0;
+  foreach ($menu_tree as $key => $value) {
+    //print $value['link']['plid'];
+    $menu_link_id = $value['link']['mlid'];
+
+    if(isset($value['link']['options']['content']['image'])) {
+      $imgId = $value['link']['options']['content']['image'];
+      $file = file_load($imgId);    
+      $uri = $file->uri;
+    } else {
+      $uri = "";
+    } 
+    $img_url = explode("://",$uri);
+    if(!isset($img_url[1])){
+      $img_url[1] = "menuimage/aai-board-image.jpg";
+    }
+    $img_url_main = $base_url."/sites/default/files/".$img_url[1];
+    if($value['link']['depth'] < 3) {
+      $class2 = "";
+      $var .= render_sub_menu_tree($value['below'], $class2, 3, $lang, $menu_link_id, $img_url_main);
+    }
+  }
+  return $var;
+ }
+
+
+ function render_sub_menu_tree($menu_tree,$class,$lavel,$lang,$plid,$img_url_main) {
+  global $base_url,$language;
+  $code = $language->language;
+  // $theme_url_current =  $base_url . base_path() . path_to_theme()."/templates";
+  $count = 0;
+  foreach ($menu_tree as $link)   {
+   if($link['link']['hidden'] == 0) {
+     if($link['link']['language'] == $lang) {
+       $count++;
+     }
+    }
+  }
+
+  print '<ul class="' . $class . ' lavelthree " id="tab-'.$plid.'"><li>';
+ if($count > 0) {
+  print '<ul class="innerul  col-md-6 pull-left">';
+
+  foreach ($menu_tree as $link)   {
+     if($link['link']['hidden'] == 0) {
+       if($link['link']['language'] == $lang) {
+         if($link['link']['plid'] == $plid) {
+             print '<li class="' . $liclass . '">';
+             $link_path = '#';
+             $link_title = $link['link']['link_title'];
+
+         if($link['link']['link_path']) {
+             $link_path = $base_url . "/$lang/" . drupal_get_path_alias($link['link']['link_path']);
+          }
+         if($lavel == 2) {
+             $tab_id = "#tab-".$j;
+          }
+         if($link['link']['depth'] == 3) {
+           $tab_id = "";
+          }
+         $base_url_m = $base_url."/$lang/<front>";
+         if($link_path == $base_url_m){
+           $link_path = $base_url . "/$lang";
+          }
+          print '<a href="' . $link_path . '" class="' . $classa . '"     data-toggle="' . $dt . '" data-target="' .$tab_id. '" data-hover="tab">' . t($link_title) . '</a>';
+           print '</li>';
+         }
+      }
+     $link['link']['plid'] = "";
+    }
+   }
+  print '</ul>';
+ }
+
+ if($count == 0){
+   $classmd = "col-md-12";
+ }
+ if($count > 0){
+   $classmd = "col-md-6";
+ }
+  print '<ul class="'.$classmd.' pull-right innerul imgmenu"><li class=""><img class="img-responsive img-style" src="'.$img_url_main.'" alt=""></li>'; 
+  print '</ul>'; 
+  print '</li></ul>';
+
+}
+
+function render_menu_tree($menu_tree, $class, $lavel, $lang) {
+  global $base_url;
+  $current_arg = arg(0);
+  $current_arg2 = arg(1);
+
+  print '<ul class="' . $class ." cl_". $lavel . '">';
+  foreach ($menu_tree as $link) {
+  if($link['link']['hidden'] == 0) {
+    if($link['link']['language'] == $lang) {
+
+      $menu_item_id = $link['link']['mlid'];
+
+      if(count($link['below']) > 0) {
+        $classa = "dropdown-toggle";
+        $dt = "dropdown";
+        $liclass = "dropdown mega-dropdown";
+        $tab_id = "#tab-" . $menu_item_id;
+        $strdttg = "data-toggle='$dt'";
+         $parent_menuid= " parent_menu='".$menu_item_id."'";
+        
+      } else {
+        $classa = "";
+        $dt = "";
+        $liclass = ""; 
+        $tab_id = "";
+        $strdttg = '';
+        $parent_menuid="";
+      }
+      $link_path = '#';
+      $target = '';
+      $link_title = $link['link']['link_title']; 
+      if($current_arg == 'node') {
+        $nid = arg(1);
+        $node_path = drupal_get_path_alias('node/'.$nid);
+        $alias = explode("/",$node_path);
+      }
+
+ 
+
+      if((($current_arg == 'corporate') && ($link_title == 'Corporate'))){       
+        $set_active = " activeitem";
+      } else if((($current_arg == 'business-opportunities') && ($link_title == 'Business Opportunities'))){       
+        $set_active = " activeitem";
+      } else if((($current_arg == 'services') && ($link_title == 'Services'))){       
+        $set_active = " activeitem";
+      } else if((($current_arg == 'tender') && ($link_title == 'Tender'))){       
+        $set_active = " activeitem";
+      } else if((($current_arg == 'resources') && ($link_title == 'Resources'))){       
+        $set_active = " activeitem";
+      } else if((($current_arg == 'vigilance') && ($link_title == 'Vigilance'))){       
+        $set_active = " activeitem";
+      } else if((($alias[0] == 'corporate') && ($link_title == 'Corporate'))){       
+        $set_active = " activeitem";
+      } else if((($alias[0] == 'business-opportunities') && ($link_title == 'Business Opportunities'))){       
+        $set_active = " activeitem";
+      } else if((($alias[0] == 'vigilance') && ($link_title == 'Vigilance'))){       
+        $set_active = " activeitem";
+      } else if((($alias[0] == 'services') && ($link_title == 'Services'))){       
+        $set_active = " activeitem";
+      } else if((($alias[0] == 'node') && ($link_title == 'Home') && ($alias[1] == ''))){       
+        $set_active = " activeitem";
+      } else {
+         $set_active = "";
+      }
+
+      print '<li class="' . $liclass.$set_active . '" '. $parent_menuid . ' >';
+
+     
+
+      // check if link is external or internal
+      $link_pth = $link['link']['link_path'];
+
+      if($link_pth) {
+        // check if external url
+        if ((substr_count($link_pth, 'http://')) || (substr_count($link_pth, 'https://'))) {
+          $link_path = $link_pth;
+          $target = "_blank";
+        } else if (substr_count($link_pth, '<front>')) {
+          // check if <fron> path in link
+          $link_path = $base_url . "/$lang";
+        } else {
+          $pth_alias = drupal_get_path_alias($link['link']['link_path']);
+          $link_path = $base_url . "/$lang/" . $pth_alias;
+        }
+      }
+
+      if($lavel == 2) {
+        $tab_id = "#tab-".$menu_item_id;
+      } else if($lavel == 1) {
+        switch ($menu_item_id) {
+          case '2018':
+            $idtb = 2008;
+            break;
+          case '368':
+            $idtb = 2097;
+            break;
+          case '383':
+            $idtb = 384;
+            break;
+          case '376':
+            $idtb = 378;
+            break;
+          case '382':
+            $idtb = 417;
+            break;
+          case '3673':
+            $idtb = 3674;
+            break;            
+          case '3774':
+            $idtb = 3775;
+            break;
+          case '3784':
+            $idtb = 3794;
+            break;
+          case '3785':
+            $idtb = 3801;
+            break;
+          case '3817':
+            $idtb = 3819;
+            break;
+          case '3828':
+            $idtb = 3829;
+            break;
+                                                                    
+        }
+ 
+        $tab_id = "#tab-".$idtb;
+      }
+
+      // check if third level menu exists
+      $mlid_p = "";
+      if($link['link']['depth'] == 3) {
+
+        $tab_id = "";
+        $mlid_p = $link['below']['link']['mlid'];
+       $parent_menuid= "main_menuid='".$menu_item_id."'";
+       
+      }
+      $link_title_forcss = $link_title;
+
+
+
+       
+      print '<a href="' . $link_path . '" class="' . $classa ."  cl_".$link['link']['depth'] . '" target="' .$target. '"  data-target="' .$tab_id. '" '.$strdttg.' data-hover="tab" >' . t($link_title) . '</a>';
+      echo get_submenu($link['below'],$lang, $link['link']['depth'], $mlid_p);
+      print '</li>'; 
+    }
+  }
+  }
+  print '</ul>';
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function aai_block_info() {
+  $blocks = array();
+
+  $blocks['aai_visitors_count'] = array(
+    'info' => t('Visitors Counter'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function aai_block_view($block_name = '') {
+  $block = array();
+
+  switch ($block_name) {
+    case 'aai_visitors_count':
+      $block['subject'] = t('');
+      $block['content'] = aai_visitors_count();
+      break;
+  }
+  return $block;
+}
+
+/**
+ * functiom to return content for visitor counter block
+ */
+function aai_visitors_count() {
+  $total_visitors = variable_get('aai_total_visitors', 0);
+  if (!$total_visitors) {
+    $total_visitors = 5584127;
+    $new_count = $total_visitors + 1;
+    variable_set('aai_total_visitors', $new_count);
+  }
+
+  $out = "<div class='aai-visitor-count wrapper'>";
+    $out .= "<div class='col-md-12'>" . t('Visitor Count : ');
+    $out .= " " . $total_visitors . "</div>";
+  $out .= "</div>";  
+  return $out;
+}

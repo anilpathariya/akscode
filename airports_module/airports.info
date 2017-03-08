@@ -1,0 +1,5 @@
+name = airports
+package= custom
+core= 7.x
+
+files[] = common/functions.php

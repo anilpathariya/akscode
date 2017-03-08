@@ -1,0 +1,466 @@
+An AJAX HTTP error occurred.
+HTTP Result Code: 200
+Debugging information follows.
+Path: /system/ajax
+StatusText: OK
+ResponseText: Array
+(
+[flight_arrival_type] => Array
+(
+[#type] => radios
+[#options] => Array
+(
+[0] => Domestic
+[1] => International
+)
+[#default_value] => 0
+[#ajax] => Array
+(
+[callback] => flight_arrival_info
+[wrapper] => flight-arrival-info-wrapper
+[method] => html
+[effect] => fade
+)
+[#input] => 1
+[#process] => Array
+(
+[0] => form_process_radios
+)
+[#theme_wrappers] => Array
+(
+[0] => radios
+)
+[#pre_render] => Array
+(
+[0] => form_pre_render_conditional_form_element
+[1] => ctools_dependent_pre_render
+)
+[#after_build] => Array
+(
+[0] => conditional_fields_element_after_build
+)
+[#defaults_loaded] => 1
+[#tree] => 
+[#parents] => Array
+(
+[0] => flight_arrival_type
+)
+[#array_parents] => Array
+(
+[0] => flight_arrival_type
+)
+[#weight] => 0
+[#processed] => 1
+[#required] => 
+[#attributes] => Array
+(
+)
+[#title_display] => before
+[#id] => edit-flight-arrival-type--2
+[#name] => flight_arrival_type
+[#value] => 0
+[#needs_validation] => 1
+[0] => Array
+(
+[#type] => radio
+[#title] => Domestic
+[#return_value] => 0
+[#default_value] => 0
+[#attributes] => Array
+(
+)
+[#parents] => Array
+(
+[0] => flight_arrival_type
+)
+[#id] => edit-flight-arrival-type-0--2
+[#ajax] => Array
+(
+[callback] => flight_arrival_info
+[wrapper] => flight-arrival-info-wrapper
+[method] => html
+[effect] => fade
+[event] => change
+)
+[#weight] => 0.001
+[#input] => 1
+[#process] => Array
+(
+[0] => ajax_process_form
+)
+[#theme] => radio
+[#theme_wrappers] => Array
+(
+[0] => form_element
+)
+[#title_display] => after
+[#pre_render] => Array
+(
+[0] => ctools_dependent_pre_render
+)
+[#after_build] => Array
+(
+[0] => conditional_fields_element_after_build
+)
+[#defaults_loaded] => 1
+[#tree] => 
+[#array_parents] => Array
+(
+[0] => flight_arrival_type
+[1] => 0
+)
+[#processed] => 1
+[#required] => 
+[#name] => flight_arrival_type
+[#value] => 0
+[#needs_validation] => 1
+[#ajax_processed] => 1
+[#attached] => Array
+(
+[library] => Array
+(
+[0] => Array
+(
+[0] => system
+[1] => jquery.form
+)
+[1] => Array
+(
+[0] => system
+[1] => drupal.ajax
+)
+)
+[js] => Array
+(
+[0] => Array
+(
+[type] => setting
+[data] => Array
+(
+[ajax] => Array
+(
+[edit-flight-arrival-type-0--2] => Array
+(
+[callback] => flight_arrival_info
+[wrapper] => flight-arrival-info-wrapper
+[method] => html
+[effect] => fade
+[event] => change
+[url] => /system/ajax
+[submit] => Array
+(
+[_triggering_element_name] => flight_arrival_type
+)
+)
+)
+[urlIsAjaxTrusted] => Array
+(
+[/system/ajax] => 1
+)
+)
+)
+)
+)
+[#sorted] => 1
+[#after_build_done] => 1
+)
+[1] => Array
+(
+[#type] => radio
+[#title] => International
+[#return_value] => 1
+[#default_value] => 0
+[#attributes] => Array
+(
+)
+[#parents] => Array
+(
+[0] => flight_arrival_type
+)
+[#id] => edit-flight-arrival-type-1--2
+[#ajax] => Array
+(
+[callback] => flight_arrival_info
+[wrapper] => flight-arrival-info-wrapper
+[method] => html
+[effect] => fade
+[event] => change
+)
+[#weight] => 0.002
+[#input] => 1
+[#process] => Array
+(
+[0] => ajax_process_form
+)
+[#theme] => radio
+[#theme_wrappers] => Array
+(
+[0] => form_element
+)
+[#title_display] => after
+[#pre_render] => Array
+(
+[0] => ctools_dependent_pre_render
+)
+[#after_build] => Array
+(
+[0] => conditional_fields_element_after_build
+)
+[#defaults_loaded] => 1
+[#tree] => 
+[#array_parents] => Array
+(
+[0] => flight_arrival_type
+[1] => 1
+)
+[#processed] => 1
+[#required] => 
+[#name] => flight_arrival_type
+[#value] => 0
+[#needs_validation] => 1
+[#ajax_processed] => 1
+[#attached] => Array
+(
+[library] => Array
+(
+[0] => Array
+(
+[0] => system
+[1] => jquery.form
+)
+[1] => Array
+(
+[0] => system
+[1] => drupal.ajax
+)
+)
+[js] => Array
+(
+[0] => Array
+(
+[type] => setting
+[data] => Array
+(
+[ajax] => Array
+(
+[edit-flight-arrival-type-1--2] => Array
+(
+[callback] => flight_arrival_info
+[wrapper] => flight-arrival-info-wrapper
+[method] => html
+[effect] => fade
+[event] => change
+[url] => /system/ajax
+[submit] => Array
+(
+[_triggering_element_name] => flight_arrival_type
+)
+)
+)
+[urlIsAjaxTrusted] => Array
+(
+[/system/ajax] => 1
+)
+)
+)
+)
+)
+[#sorted] => 1
+[#after_build_done] => 1
+)
+[#after_build_done] => 1
+)
+[flight_arrival_info_wrappers] => Array
+(
+[#prefix] => 
+[#suffix] => 
+[#weight] => 2
+[#tree] => 
+[#parents] => Array
+(
+[0] => flight_arrival_info_wrappers
+)
+[#array_parents] => Array
+(
+[0] => flight_arrival_info_wrappers
+)
+[#processed] => 
+[#required] => 
+[#attributes] => Array
+(
+)
+[#title_display] => before
+[#id] => edit-flight-arrival-info-wrappers
+[#sorted] => 1
+)
+[#foo] => Array
+(
+[0] => ajax
+)
+[#form_id] => fids_arrival_form
+[#build_id] => form-1mK4BYo1Xcjk7p-wPH-Qw6lhAgZd8MffBTryZVpftJU
+[#action] => /airports/jaipur
+[#type] => form
+[form_build_id] => Array
+(
+[#type] => hidden
+[#value] => form-1mK4BYo1Xcjk7p-wPH-Qw6lhAgZd8MffBTryZVpftJU
+[#id] => form-1mK4BYo1Xcjk7p-wPH-Qw6lhAgZd8MffBTryZVpftJU
+[#name] => form_build_id
+[#parents] => Array
+(
+[0] => form_build_id
+)
+[#input] => 1
+[#process] => Array
+(
+[0] => ajax_process_form
+)
+[#theme] => hidden
+[#after_build] => Array
+(
+[0] => conditional_fields_element_after_build
+)
+[#defaults_loaded] => 1
+[#tree] => 
+[#array_parents] => Array
+(
+[0] => form_build_id
+)
+[#weight] => 0.002
+[#processed] => 1
+[#required] => 
+[#attributes] => Array
+(
+)
+[#title_display] => before
+[#ajax_processed] => 
+[#sorted] => 1
+[#after_build_done] => 1
+)
+[#token] => fids_arrival_form
+[form_token] => Array
+(
+[#id] => edit-fids-arrival-form-form-token
+[#type] => token
+[#default_value] => fCHiD4bcdS7xw8qNBkeFnLOHQlZk-lVztxTZoQabzus
+[#parents] => Array
+(
+[0] => form_token
+)
+[#input] => 1
+[#theme] => hidden
+[#after_build] => Array
+(
+[0] => conditional_fields_element_after_build
+)
+[#defaults_loaded] => 1
+[#tree] => 
+[#array_parents] => Array
+(
+[0] => form_token
+)
+[#weight] => 0.003
+[#processed] => 
+[#required] => 
+[#attributes] => Array
+(
+)
+[#title_display] => before
+[#name] => form_token
+[#value] => fCHiD4bcdS7xw8qNBkeFnLOHQlZk-lVztxTZoQabzus
+[#needs_validation] => 1
+[#sorted] => 1
+[#after_build_done] => 1
+)
+[form_id] => Array
+(
+[#type] => hidden
+[#value] => fids_arrival_form
+[#id] => edit-fids-arrival-form
+[#parents] => Array
+(
+[0] => form_id
+)
+[#input] => 1
+[#process] => Array
+(
+[0] => ajax_process_form
+)
+[#theme] => hidden
+[#after_build] => Array
+(
+[0] => conditional_fields_element_after_build
+)
+[#defaults_loaded] => 1
+[#tree] => 
+[#array_parents] => Array
+(
+[0] => form_id
+)
+[#weight] => 0.004
+[#processed] => 1
+[#required] => 
+[#attributes] => Array
+(
+)
+[#title_display] => before
+[#name] => form_id
+[#ajax_processed] => 
+[#sorted] => 1
+[#after_build_done] => 1
+)
+[#id] => fids-arrival-form--2
+[#method] => post
+[#theme_wrappers] => Array
+(
+[0] => form
+)
+[#after_build] => Array
+(
+[0] => conditional_fields_element_after_build
+)
+[#tree] => 
+[#parents] => Array
+(
+)
+[#validate] => Array
+(
+)
+[#submit] => Array
+(
+)
+[#theme] => Array
+(
+[0] => fids_arrival_form
+)
+[#processed] => 
+[#defaults_loaded] => 1
+[#required] => 
+[#attributes] => Array
+(
+)
+[#title_display] => before
+[#array_parents] => Array
+(
+)
+[#after_build_done] => 1
+[#attached] => Array
+(
+[js] => Array
+(
+[0] => Array
+(
+[type] => setting
+[data] => Array
+(
+[urlIsAjaxTrusted] => Array
+(
+[/airports/jaipur] => 1
+)
+)
+)
+)
+)
+)
+[{"command":"settings","settings":{"basePath":"\/","pathPrefix":"","ajaxPageState":{"theme":"multipurpose_zymphonies_theme","theme_token":"KSJF32aaJiRiJp7U5mF1vTRMC8AorfBXb_u85ohBVRY"},"jcarousel":{"ajaxPath":"\/jcarousel\/ajax\/views"},"jquerymenu":{"hover":1,"animate":0,"edit_link":0},"scroll_to_top":{"label":"Back to top"}},"merge":true},{"command":"insert","method":null,"selector":null,"data":"\u003Ctable\u003E\u003Ctr\u003E\u003Ctd\u003E15:40\u003C\/td\u003E\u003Ctd\u003EIndigo -- 6E 887\u003C\/td\u003E\u003Ctd\u003ET3\u003C\/td\u003E\u003Ctd\u003EDelay\u003C\/td\u003E\u003C\/tr\u003E\u003C\/table\u003E\u003Ctable\u003E\u003Ctr\u003E\u003Ctd\u003E16:39\u003C\/td\u003E\u003Ctd\u003EIndigo -- 6E 887\u003C\/td\u003E\u003Ctd\u003ET2\u003C\/td\u003E\u003Ctd\u003EArrived\u003C\/td\u003E\u003C\/tr\u003E\u003C\/table\u003E","settings":null},{"command":"insert","method":"prepend","selector":null,"data":"","settings":null}]

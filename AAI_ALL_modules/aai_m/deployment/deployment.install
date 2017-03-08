@@ -1,0 +1,1559 @@
+<?php
+/**
+ * Implements hook_install().
+ */
+function deployment_install() {
+}
+
+/**
+ * Implements hook_update_dependencies().
+ */
+function deployment_update_dependencies() {
+  $dependencies = array();
+
+  return $dependencies;
+}
+
+
+/**
+ * Helper function to bulk enable modules.
+ *
+ * @param $modules
+ */
+function deployment_module_enable($modules) {
+  return $modules_enabled = module_enable($modules, TRUE);
+}
+
+/**
+ * Helper function to bulk uninstall modules.
+ *
+ * @param $modules
+ */
+function deployment_module_disable($modules) {
+  $response = module_disable($modules, true);
+  drupal_flush_all_caches();
+  return $response;
+}
+
+/**
+ * Helper function to bulk uninstall modules.
+ *
+ * @param $modules
+ */
+function deployment_module_uninstall($modules) {
+  $response = module_disable($modules, true);
+  drupal_uninstall_modules($modules);
+  drupal_flush_all_caches();
+  return $response;
+}
+
+/**
+ * Helper function to bulk revert features.
+ *
+ * @param $modules
+ */
+function deployment_features_revert($features) {
+  drupal_flush_all_caches();
+  features_revert($features);
+  drupal_flush_all_caches();
+}
+
+
+/**
+ * Helper function to clear webform submissions.
+ *
+ * @param null $uuid
+ *   UUID of the webform to clear submissions for, NULL to clear all
+ *   submissions.
+ */
+// function deployment_webform_submission_clear($uuid = NULL) {
+//   $query = new EntityFieldQuery();
+//   $query->entityCondition('entity_type', 'node')
+//     ->entityCondition('bundle', 'webform');
+
+//   if ($uuid) {
+//     $query->propertyCondition('uuid', $uuid, '=');
+//   }
+
+//   $results = $query->execute();
+
+//   foreach ($results['node'] as $result) {
+//     $nid = $result->nid;
+//     db_delete('webform_submitted_data')
+//       ->condition('nid', $nid)
+//       ->execute();
+//     db_delete('webform_submissions')
+//       ->condition('nid', $nid)
+//       ->execute();
+//   }
+// }
+
+/**
+ * Helper function to disable views.
+ */
+// function deployment_disable_views($viewnames) {
+//   // grab list of views that are already disabled
+//   $views_status = variable_get('views_defaults', array());
+//   // add our views to be disabled to the list
+//   foreach ($viewnames as $key => $viewname) {
+//     $views_status[$viewname] = TRUE;
+//   }
+//   // reset the variable with the new list
+//   variable_set('views_defaults', $views_status);
+//   // empty cache now
+//   if (function_exists('views_invalidate_cache')) {
+//     views_invalidate_cache();
+//   }
+// }
+
+
+/**
+ * implements hook_undate_N().
+ *   Added deployment module for features
+ */
+function deployment_update_8001(&$sandbox) {
+  $modules = array(
+    'deployment',
+    'features',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Added feature for media galler view
+ */
+function deployment_update_8002(&$sandbox) {
+  $modules = array(
+    'view_media_gallery',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+	
+/**
+ * implements hook_undate_N().
+ *   Added deployment module for features
+ */
+function deployment_update_8003(&$sandbox) {
+  $modules = array(
+    'deployment',
+    'features',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Added feature for media galler view
+ */
+function deployment_update_8004(&$sandbox) {
+  $modules = array(
+    'view_media_gallery',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Added feature for media galler view
+ */
+function deployment_update_8005(&$sandbox) {
+  $modules = array(
+    'main_menu',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Updated photo gallery content type.
+ */
+function deployment_update_8006(&$sandbox) {
+  $modules = array(
+    'changes_in_content_type_photo_gallery',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Added uuid_features module.
+ */
+function deployment_update_8007(&$sandbox) {
+  $modules = array(
+    'uuid_features',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Added uuid_features_menu module to resolve issue 
+ * with addition of external menu link items to be added
+ * into menu link section in features page.
+ */
+function deployment_update_8008(&$sandbox) {
+  /*$modules = array(
+    'uuid_features_menu',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();*/
+}
+
+/**
+ * Added nit listing module.
+ */
+function deployment_update_8009(&$sandbox) {
+  $modules = array(
+    'nit_listing',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Added nit listing module.
+ */
+function deployment_update_8010(&$sandbox) {
+  $modules = array(
+    'pathauto',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Remove/disable uuid_features_menu.
+ */
+function deployment_update_8011(&$sandbox) {
+  /*$modules = array(
+    'main_menu',
+    'uuid_features_menu',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_disable($modules, TRUE);
+  deployment_module_uninstall($modules);
+  deployment_module_enable('main_menu');
+
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();*/
+} 
+
+/**
+ * Added content type certification listing module.
+ */
+function deployment_update_8012(&$sandbox) {
+  $modules = array(
+    'content_type_investors',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  drupal_flush_all_caches();
+
+  $modules = array(
+    //'content_type_certification',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Added view circular-MOM-letter module.
+ */
+function deployment_update_8013(&$sandbox) {
+  $modules = array(
+    'view_mom_letter',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Added citizen-charter content type field and citizen-charter view module.
+ */
+function deployment_update_8014(&$sandbox) {
+  $modules = array(
+    'content_type_investors',
+    'view_citizen_charter',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Added Class archive in footer Archive link AAI MAGAZINE & Current Opening  view .
+ */
+function deployment_update_8015(&$sandbox) {
+  $modules = array(
+    'aai_magazine',
+	  'current_openings',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Disable and uninstall content_type_certification.
+ */
+function deployment_update_8016(&$sandbox) {
+/*
+  $modules = array(
+    'content_type_investors',  
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_disable($modules, TRUE);
+  deployment_module_uninstall($modules);
+  
+   $modules = array(
+    'content_type_certifications',  
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_disable($modules, TRUE);
+  deployment_module_uninstall($modules);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+*/
+}
+
+
+/**
+ * Enable Content type certifications .
+ */
+function deployment_update_8017(&$sandbox) {
+  /*
+  $modules = array(
+    'content_type_investors',
+    'content_type_certifications',
+    );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();*/
+}
+
+ /**
+  * Enable taxonomy city & transport with there content types
+  */
+function deployment_update_8018(&$sandbox) {
+  $modules = array(
+    'shs',
+   );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+  drupal_flush_all_caches();
+}
+
+
+
+/**
+ * Enable Content type Oraganization Structure .
+ */
+function deployment_update_8019(&$sandbox) {
+  
+  $modules = array(
+    'organization_structure',
+    'organization_structure_view',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+  
+}
+
+/**
+ * Enable Update Board Member Profile .
+ */
+function deployment_update_8021(&$sandbox) {
+  
+  $modules = array(
+    'profile_content_type',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+
+/**
+ * Update Board Member Profile View .
+ */
+function deployment_update_8022(&$sandbox) {
+  
+  $modules = array(
+    'profile_board_member_views',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+}
+
+/**
+ * Enable Quick Tabs .
+ */
+function deployment_update_8023(&$sandbox) {
+  
+  $modules = array(
+    'quick_tabs_for_organization',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Enable taxonomy term airport city and transport feature .
+ */
+function deployment_update_8024(&$sandbox) {
+  
+  $modules = array(
+    'taxonomy_airport_city_info',
+    'airport_transport_information',
+    'content_type_airport_city_info',
+    'content_type_airport_transport',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+  * Enable ta readmore Module .
+ */
+function deployment_update_8025(&$sandbox) {
+  
+  $modules = array(
+    'readmore',
+     );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Disable and uninstall  Content Type organization_structure.
+ */
+function deployment_update_8026(&$sandbox) { 
+ /* $modules = array(
+    'organization_structure',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_disable($modules, TRUE);
+  deployment_module_uninstall($modules);   
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are Disabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches(); */
+}
+
+/**
+ * Enable vigilance intigrity club feature  .
+ */
+function deployment_update_8027(&$sandbox) {
+  
+  $modules = array(
+    'content_type_vigilance_integrity_club',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+* Delete nodes and content types organization_structure.
+*/ 
+function deployment_update_8028() {
+  $types = array(
+    'organization_structure',
+  );
+  foreach($types as $type) {
+    // First, delete nodes
+    $results = db_select('node', 'n')
+                ->fields('n', array('nid'))
+                ->condition('type', $type)
+                ->execute();
+    foreach ($results as $result) {
+      $nids[] = $result->nid;
+    }
+    if (!empty($nids)) {
+      node_delete_multiple($nids);
+      drupal_set_message(t('%count nodes has been deleted.', array('%count' => count($nids))));
+    }
+    // Then, delete content type
+    if (node_type_load($type)) {
+      node_type_delete($type);
+      variable_del('node_preview_' . $type);
+      drupal_set_message(t('%type content type has been deleted.', array('%type' => $type)));
+    }
+  }
+  node_types_rebuild();
+  menu_rebuild();
+}
+
+/**
+ * Enable View Oraganization Structure .
+ */
+function deployment_update_8029(&$sandbox) {
+  
+  $modules = array(
+    'organization_structure_view',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+  
+}
+
+/**
+ * Enable content_type_vigilance .
+ */
+function deployment_update_8030(&$sandbox) {
+  
+  $modules = array(
+    'content_type_vigilance',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+  
+}
+
+/**
+ * Enable content_type_vigilance .
+ */
+function deployment_update_8031(&$sandbox) {
+	
+	$view = new view();
+	$view->name = 'organization_structure';
+	$view->description = '';
+	$view->tag = 'default';
+	$view->base_table = 'node';
+	$view->human_name = 'Organization Structure';
+	$view->core = 7;
+	$view->api_version = '3.0';
+	$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+	/* Display: Master */
+	$handler = $view->new_display('default', 'Master', 'default');
+	$handler->display->display_options['title'] = 'Organization Structure';
+	$handler->display->display_options['use_ajax'] = TRUE;
+	$handler->display->display_options['use_more_always'] = FALSE;
+	$handler->display->display_options['access']['type'] = 'perm';
+	$handler->display->display_options['cache']['type'] = 'none';
+	$handler->display->display_options['query']['type'] = 'views_query';
+	$handler->display->display_options['exposed_form']['type'] = 'input_required';
+	$handler->display->display_options['exposed_form']['options']['text_input_required'] = 'Please Select Department';
+	$handler->display->display_options['exposed_form']['options']['text_input_required_format'] = 'full_html';
+	$handler->display->display_options['pager']['type'] = 'full';
+	$handler->display->display_options['pager']['options']['items_per_page'] = '10';
+	$handler->display->display_options['style_plugin'] = 'default';
+	$handler->display->display_options['row_plugin'] = 'node';
+	/* No results behavior: Global: Text area */
+	$handler->display->display_options['empty']['area']['id'] = 'area';
+	$handler->display->display_options['empty']['area']['table'] = 'views';
+	$handler->display->display_options['empty']['area']['field'] = 'area';
+	$handler->display->display_options['empty']['area']['empty'] = TRUE;
+	$handler->display->display_options['empty']['area']['content'] = 'Please select department.';
+	$handler->display->display_options['empty']['area']['format'] = 'full_html';
+	/* Field: Content: Title */
+	$handler->display->display_options['fields']['title']['id'] = 'title';
+	$handler->display->display_options['fields']['title']['table'] = 'node';
+	$handler->display->display_options['fields']['title']['field'] = 'title';
+	$handler->display->display_options['fields']['title']['label'] = '';
+	$handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+	$handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+	/* Sort criterion: Content: Post date */
+	$handler->display->display_options['sorts']['created']['id'] = 'created';
+	$handler->display->display_options['sorts']['created']['table'] = 'node';
+	$handler->display->display_options['sorts']['created']['field'] = 'created';
+	$handler->display->display_options['sorts']['created']['order'] = 'DESC';
+	/* Filter criterion: Content: Published */
+	$handler->display->display_options['filters']['status']['id'] = 'status';
+	$handler->display->display_options['filters']['status']['table'] = 'node';
+	$handler->display->display_options['filters']['status']['field'] = 'status';
+	$handler->display->display_options['filters']['status']['value'] = 1;
+	$handler->display->display_options['filters']['status']['group'] = 1;
+	$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+	/* Filter criterion: Content: Type */
+	$handler->display->display_options['filters']['type']['id'] = 'type';
+	$handler->display->display_options['filters']['type']['table'] = 'node';
+	$handler->display->display_options['filters']['type']['field'] = 'type';
+	$handler->display->display_options['filters']['type']['value'] = array(
+	  'aai_department' => 'aai_department',
+	);
+
+	/* Display: Organization Structure Corporate */
+	$handler = $view->new_display('page', 'Organization Structure Corporate', 'page');
+	$handler->display->display_options['defaults']['title'] = FALSE;
+	$handler->display->display_options['title'] = 'Organization Structure Corporate';
+	$handler->display->display_options['defaults']['exposed_form'] = FALSE;
+	$handler->display->display_options['exposed_form']['type'] = 'input_required';
+	$handler->display->display_options['exposed_form']['options']['submit_button'] = 'Search';
+	$handler->display->display_options['exposed_form']['options']['text_input_required'] = 'P';
+	$handler->display->display_options['exposed_form']['options']['text_input_required_format'] = 'P';
+	$handler->display->display_options['defaults']['style_plugin'] = FALSE;
+	$handler->display->display_options['style_plugin'] = 'default';
+	$handler->display->display_options['defaults']['style_options'] = FALSE;
+	$handler->display->display_options['defaults']['row_plugin'] = FALSE;
+	$handler->display->display_options['row_plugin'] = 'fields';
+	$handler->display->display_options['defaults']['row_options'] = FALSE;
+	$handler->display->display_options['defaults']['fields'] = FALSE;
+	/* Field: Field: Department */
+	$handler->display->display_options['fields']['field_department']['id'] = 'field_department';
+	$handler->display->display_options['fields']['field_department']['table'] = 'field_data_field_department';
+	$handler->display->display_options['fields']['field_department']['field'] = 'field_department';
+	$handler->display->display_options['fields']['field_department']['label'] = '';
+	$handler->display->display_options['fields']['field_department']['exclude'] = TRUE;
+	$handler->display->display_options['fields']['field_department']['element_label_colon'] = FALSE;
+	$handler->display->display_options['fields']['field_department']['type'] = 'taxonomy_term_reference_plain';
+	/* Field: Content: Title */
+	$handler->display->display_options['fields']['title']['id'] = 'title';
+	$handler->display->display_options['fields']['title']['table'] = 'node';
+	$handler->display->display_options['fields']['title']['field'] = 'title';
+	$handler->display->display_options['fields']['title']['label'] = '';
+	$handler->display->display_options['fields']['title']['alter']['alter_text'] = TRUE;
+	$handler->display->display_options['fields']['title']['alter']['text'] = '<div style="float:left;width:100%;">Corporate Headquarter >> [field_department]</div>';
+	$handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+	$handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+	$handler->display->display_options['fields']['title']['element_label_colon'] = FALSE;
+	$handler->display->display_options['fields']['title']['link_to_node'] = FALSE;
+	/* Field: Content: Body */
+	$handler->display->display_options['fields']['body']['id'] = 'body';
+	$handler->display->display_options['fields']['body']['table'] = 'field_data_body';
+	$handler->display->display_options['fields']['body']['field'] = 'body';
+	$handler->display->display_options['fields']['body']['label'] = '';
+	$handler->display->display_options['fields']['body']['element_label_colon'] = FALSE;
+	$handler->display->display_options['defaults']['filter_groups'] = FALSE;
+	$handler->display->display_options['defaults']['filters'] = FALSE;
+	/* Filter criterion: Content: Published */
+	$handler->display->display_options['filters']['status']['id'] = 'status';
+	$handler->display->display_options['filters']['status']['table'] = 'node';
+	$handler->display->display_options['filters']['status']['field'] = 'status';
+	$handler->display->display_options['filters']['status']['value'] = 1;
+	$handler->display->display_options['filters']['status']['group'] = 1;
+	$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+	/* Filter criterion: Content: Type */
+	$handler->display->display_options['filters']['type']['id'] = 'type';
+	$handler->display->display_options['filters']['type']['table'] = 'node';
+	$handler->display->display_options['filters']['type']['field'] = 'type';
+	$handler->display->display_options['filters']['type']['value'] = array(
+	  'aai_department' => 'aai_department',
+	);
+	/* Filter criterion: Content: AAI Headquarter (field_aai_headquarter) */
+	$handler->display->display_options['filters']['field_aai_headquarter_tid']['id'] = 'field_aai_headquarter_tid';
+	$handler->display->display_options['filters']['field_aai_headquarter_tid']['table'] = 'field_data_field_aai_headquarter';
+	$handler->display->display_options['filters']['field_aai_headquarter_tid']['field'] = 'field_aai_headquarter_tid';
+	$handler->display->display_options['filters']['field_aai_headquarter_tid']['value'] = array(
+	  290 => '290',
+	);
+	$handler->display->display_options['filters']['field_aai_headquarter_tid']['type'] = 'select';
+	$handler->display->display_options['filters']['field_aai_headquarter_tid']['vocabulary'] = 'aai_headquarter';
+	$handler->display->display_options['filters']['field_aai_headquarter_tid']['hierarchy'] = 1;
+	/* Filter criterion: Field: Department (field_department) (translated) */
+	$handler->display->display_options['filters']['field_department_tid_i18n']['id'] = 'field_department_tid_i18n';
+	$handler->display->display_options['filters']['field_department_tid_i18n']['table'] = 'field_data_field_department';
+	$handler->display->display_options['filters']['field_department_tid_i18n']['field'] = 'field_department_tid_i18n';
+	$handler->display->display_options['filters']['field_department_tid_i18n']['exposed'] = TRUE;
+	$handler->display->display_options['filters']['field_department_tid_i18n']['expose']['operator_id'] = 'field_department_tid_i18n_op';
+	$handler->display->display_options['filters']['field_department_tid_i18n']['expose']['label'] = 'Department';
+	$handler->display->display_options['filters']['field_department_tid_i18n']['expose']['operator'] = 'field_department_tid_i18n_op';
+	$handler->display->display_options['filters']['field_department_tid_i18n']['expose']['identifier'] = 'field_department_tid_i18n';
+	$handler->display->display_options['filters']['field_department_tid_i18n']['expose']['remember_roles'] = array(
+	  2 => '2',
+	  1 => 0,
+	  3 => 0,
+	  4 => 0,
+	  5 => 0,
+	  6 => 0,
+	  7 => 0,
+	  8 => 0,
+	  9 => 0,
+	  10 => 0,
+	  11 => 0,
+	  12 => 0,
+	);
+	$handler->display->display_options['filters']['field_department_tid_i18n']['type'] = 'select';
+	$handler->display->display_options['filters']['field_department_tid_i18n']['vocabulary'] = 'auto_created_voc4_857';
+	$handler->display->display_options['filters']['field_department_tid_i18n']['error_message'] = FALSE;
+	$handler->display->display_options['path'] = 'corporate/organization-structure';
+
+	/* Display: Organization Structure Regional */
+	$handler = $view->new_display('page', 'Organization Structure Regional', 'page_1');
+	$handler->display->display_options['defaults']['title'] = FALSE;
+	$handler->display->display_options['title'] = 'Organization Structure Regional';
+	$handler->display->display_options['defaults']['style_plugin'] = FALSE;
+	$handler->display->display_options['style_plugin'] = 'default';
+	$handler->display->display_options['defaults']['style_options'] = FALSE;
+	$handler->display->display_options['defaults']['row_plugin'] = FALSE;
+	$handler->display->display_options['row_plugin'] = 'fields';
+	$handler->display->display_options['defaults']['row_options'] = FALSE;
+	$handler->display->display_options['defaults']['fields'] = FALSE;
+	/* Field: Content: Title */
+	$handler->display->display_options['fields']['title']['id'] = 'title';
+	$handler->display->display_options['fields']['title']['table'] = 'node';
+	$handler->display->display_options['fields']['title']['field'] = 'title';
+	$handler->display->display_options['fields']['title']['label'] = 'Department';
+	$handler->display->display_options['fields']['title']['exclude'] = TRUE;
+	$handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+	$handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
+	$handler->display->display_options['fields']['title']['element_label_colon'] = FALSE;
+	$handler->display->display_options['fields']['title']['link_to_node'] = FALSE;
+	/* Field: Field: Region */
+	$handler->display->display_options['fields']['field_region']['id'] = 'field_region';
+	$handler->display->display_options['fields']['field_region']['table'] = 'field_data_field_region';
+	$handler->display->display_options['fields']['field_region']['field'] = 'field_region';
+	$handler->display->display_options['fields']['field_region']['label'] = '';
+	$handler->display->display_options['fields']['field_region']['alter']['alter_text'] = TRUE;
+	$handler->display->display_options['fields']['field_region']['alter']['text'] = '<div style="float:left;width:100%;">[title] >> [field_region]</div>';
+	$handler->display->display_options['fields']['field_region']['element_label_colon'] = FALSE;
+	$handler->display->display_options['fields']['field_region']['type'] = 'taxonomy_term_reference_plain';
+	/* Field: Content: Body */
+	$handler->display->display_options['fields']['body']['id'] = 'body';
+	$handler->display->display_options['fields']['body']['table'] = 'field_data_body';
+	$handler->display->display_options['fields']['body']['field'] = 'body';
+	$handler->display->display_options['fields']['body']['label'] = '';
+	$handler->display->display_options['fields']['body']['element_label_colon'] = FALSE;
+	$handler->display->display_options['defaults']['filter_groups'] = FALSE;
+	$handler->display->display_options['defaults']['filters'] = FALSE;
+	/* Filter criterion: Content: Published */
+	$handler->display->display_options['filters']['status']['id'] = 'status';
+	$handler->display->display_options['filters']['status']['table'] = 'node';
+	$handler->display->display_options['filters']['status']['field'] = 'status';
+	$handler->display->display_options['filters']['status']['value'] = 1;
+	$handler->display->display_options['filters']['status']['group'] = 1;
+	$handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+	/* Filter criterion: Content: Type */
+	$handler->display->display_options['filters']['type']['id'] = 'type';
+	$handler->display->display_options['filters']['type']['table'] = 'node';
+	$handler->display->display_options['filters']['type']['field'] = 'type';
+	$handler->display->display_options['filters']['type']['value'] = array(
+	  'aai_department' => 'aai_department',
+	);
+	/* Filter criterion: Content: AAI Headquarter (field_aai_headquarter) */
+	$handler->display->display_options['filters']['field_aai_headquarter_tid']['id'] = 'field_aai_headquarter_tid';
+	$handler->display->display_options['filters']['field_aai_headquarter_tid']['table'] = 'field_data_field_aai_headquarter';
+	$handler->display->display_options['filters']['field_aai_headquarter_tid']['field'] = 'field_aai_headquarter_tid';
+	$handler->display->display_options['filters']['field_aai_headquarter_tid']['value'] = array(
+	  291 => '291',
+	);
+	$handler->display->display_options['filters']['field_aai_headquarter_tid']['type'] = 'select';
+	$handler->display->display_options['filters']['field_aai_headquarter_tid']['vocabulary'] = 'aai_headquarter';
+	$handler->display->display_options['filters']['field_aai_headquarter_tid']['hierarchy'] = 1;
+	/* Filter criterion: Field: Department (field_department) */
+	$handler->display->display_options['filters']['field_department_tid']['id'] = 'field_department_tid';
+	$handler->display->display_options['filters']['field_department_tid']['table'] = 'field_data_field_department';
+	$handler->display->display_options['filters']['field_department_tid']['field'] = 'field_department_tid';
+	$handler->display->display_options['filters']['field_department_tid']['exposed'] = TRUE;
+	$handler->display->display_options['filters']['field_department_tid']['expose']['operator_id'] = 'field_department_tid_op';
+	$handler->display->display_options['filters']['field_department_tid']['expose']['label'] = 'Department';
+	$handler->display->display_options['filters']['field_department_tid']['expose']['operator'] = 'field_department_tid_op';
+	$handler->display->display_options['filters']['field_department_tid']['expose']['identifier'] = 'field_department_tid';
+	$handler->display->display_options['filters']['field_department_tid']['expose']['remember_roles'] = array(
+	  2 => '2',
+	  1 => 0,
+	  3 => 0,
+	  4 => 0,
+	  5 => 0,
+	  6 => 0,
+	  7 => 0,
+	  8 => 0,
+	  9 => 0,
+	  10 => 0,
+	  11 => 0,
+	  12 => 0,
+	);
+	$handler->display->display_options['filters']['field_department_tid']['type'] = 'select';
+	$handler->display->display_options['filters']['field_department_tid']['vocabulary'] = 'auto_created_voc4_857';
+	$handler->display->display_options['filters']['field_department_tid']['hierarchy'] = 1;
+	/* Filter criterion: Field: Region (field_region) */
+	$handler->display->display_options['filters']['field_region_tid']['id'] = 'field_region_tid';
+	$handler->display->display_options['filters']['field_region_tid']['table'] = 'field_data_field_region';
+	$handler->display->display_options['filters']['field_region_tid']['field'] = 'field_region_tid';
+	$handler->display->display_options['filters']['field_region_tid']['exposed'] = TRUE;
+	$handler->display->display_options['filters']['field_region_tid']['expose']['operator_id'] = 'field_region_tid_op';
+	$handler->display->display_options['filters']['field_region_tid']['expose']['label'] = 'Region';
+	$handler->display->display_options['filters']['field_region_tid']['expose']['operator'] = 'field_region_tid_op';
+	$handler->display->display_options['filters']['field_region_tid']['expose']['identifier'] = 'field_region_tid';
+	$handler->display->display_options['filters']['field_region_tid']['expose']['remember_roles'] = array(
+	  2 => '2',
+	  1 => 0,
+	  3 => 0,
+	  4 => 0,
+	  5 => 0,
+	  6 => 0,
+	  7 => 0,
+	  8 => 0,
+	  9 => 0,
+	  10 => 0,
+	  11 => 0,
+	  12 => 0,
+	);
+	$handler->display->display_options['filters']['field_region_tid']['type'] = 'select';
+	$handler->display->display_options['filters']['field_region_tid']['vocabulary'] = 'auto_created_voc10_61';
+	$handler->display->display_options['filters']['field_region_tid']['error_message'] = FALSE;
+	$handler->display->display_options['path'] = 'corporate/organization-structure/regional';	
+	
+}
+
+/**
+ * Enable content type Basic Page .
+ */
+function deployment_update_8032(&$sandbox) {
+  
+  $modules = array(
+    'content_type_basic_page',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+  
+}
+
+/**
+ * Enable Taxonomy Basic Page Type .
+ */
+function deployment_update_8033(&$sandbox) {
+  
+  $modules = array(
+    'taxonomy_basic_page_type',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+  
+}
+/**
+ * Update view board members for Corporate content Type
+ */
+function deployment_update_8034(&$sandbox) {
+  
+  $modules = array(
+    'view_board_members_for_content',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+  
+}
+/**
+ * Update view services airport credit policy
+ */
+function deployment_update_8035(&$sandbox) {
+  
+  $modules = array(
+    'view_services_airport_credit_policy',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+  
+}
+/**
+ * Update view careers Add Order List on Every Listing Page
+ */
+function deployment_update_8036(&$sandbox) {
+  
+  $modules = array(
+    'view_careers',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+  
+}
+/**
+ * Update CSR Media Coverage Content Type Update Thumb Max Image Size
+ */
+function deployment_update_8037(&$sandbox) {
+  
+  $modules = array(
+    'content_type_csr_media_coverage',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+  
+}
+/**
+ * Update View of CSR Media Coverage Display Look
+ */
+function deployment_update_8038(&$sandbox) {
+  
+  $modules = array(
+    'view_csr_media_coverage',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+  
+}
+
+/**
+ * Update View of Airports Banner 
+ */
+function deployment_update_8039(&$sandbox) {
+  
+  $modules = array(
+    'view_airports',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+  drupal_flush_all_caches();
+}
+
+/**
+ * Remove/disable content_type_airport_city_info.
+ */
+function deployment_update_8040(&$sandbox) {
+  $modules = array(
+    'content_type_airport_city_info',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_disable($modules, TRUE);
+  deployment_module_uninstall($modules);
+   drupal_flush_all_caches();
+} 
+
+/**
+ * enable content_type_airport_city_info & content_type_airport_passenger_info.
+ */
+function deployment_update_8041(&$sandbox) {
+  $modules = array(
+    'content_type_airport_city_info',
+    'content_type_airport_passenger_info',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  deployment_module_uninstall($modules);
+  drupal_flush_all_caches();
+}
+
+/**
+ * disable taxonomy features for city info and transport.
+ */
+function deployment_update_8042(&$sandbox) {
+  $modules = array(
+    'airport_transport_information',
+    'taxonomy_airport_city_info',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_disable($modules, TRUE);
+  deployment_module_uninstall($modules);
+   drupal_flush_all_caches();
+}
+
+/**
+ * Uninstall/disable Complaint Module.
+ */
+function deployment_update_8043(&$sandbox) {
+  $modules = array(
+    'complaint',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_disable($modules, TRUE);
+  deployment_module_uninstall($modules);
+  drupal_flush_all_caches();
+}
+
+/**
+ * enable content_type_airport_city_info & content_type_airport_passenger_info.
+ */
+function deployment_update_8044(&$sandbox) {
+  $modules = array(
+    'content_type_airport_city_info',
+    'content_type_airport_passenger_info',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Enable Airport Inner Page Top Banner & Body Content
+ */
+function deployment_update_8045(&$sandbox) {
+  $modules = array(
+    'airport_advertisements_and_banner',
+
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Uninstall/disable taxonomy_basic_page_type.
+ */
+function deployment_update_8046(&$sandbox) {
+  $modules = array(
+    'taxonomy_basic_page_type',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_disable($modules, TRUE);
+  deployment_module_uninstall($modules);
+  drupal_flush_all_caches();
+}
+
+/**
+ * Enable clientside validation module
+ */
+function deployment_update_8047(&$sandbox) {
+  $modules = array(
+    'clientside_validation',
+    'clientside_validation_form',
+    'clientside_validation_html5',
+    );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+/**
+ * Enable Airports Content Type
+ */
+function deployment_update_8048(&$sandbox) {
+  $modules = array(
+    'content_type_airports',
+       );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Enable URL Module
+ */
+function deployment_update_8049(&$sandbox) {
+  $modules = array(
+    'url',
+       );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+/**
+ * Enable URL Module
+ */
+function deployment_update_8050(&$sandbox) {
+  $modules = array(
+    'profile_main',
+    'account_profile',
+    'view_regional_headquarters',
+       );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Enable feature of Airports FAQ
+ */
+function deployment_update_8051(&$sandbox) {
+  $modules = array(
+    'content_type_airports_faq',
+    'view_airports_faq',
+       );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Enable feature of Multi step Node form module
+ */
+function deployment_update_8052(&$sandbox) {
+  $modules = array(
+    'msnf',
+       );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Enable feature of Tender form module
+ */
+function deployment_update_8053(&$sandbox) {
+  $modules = array(
+    'content_type_tender',
+       );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+/**
+ * Enable Airport Image Gallery Content Type
+ */
+function deployment_update_8054(&$sandbox) {
+  $modules = array(
+    'content_type_airport_image_gallery',
+       );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+/**
+ * Enable Airport Image Gallery View
+ */
+function deployment_update_8055(&$sandbox) {
+  $modules = array(
+    'view_airport_image_gallery',
+       );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+
+/**
+ * Disable Profile2 Module and its dependent modules
+ */
+function deployment_update_8056(&$sandbox) {
+  $modules = array(
+    'profile2',
+    'profile2_page',
+    'profile2_i18n',
+    'account_profile',
+    'profile2_regpath',
+    'profile2_og_access',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_disable($modules, TRUE);
+  deployment_module_uninstall($modules);
+  drupal_flush_all_caches();
+}
+
+/**
+ * Enable title Module and its dependent modules
+ */
+function deployment_update_8057(&$sandbox) {
+  $modules = array(
+    'title',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+  drupal_flush_all_caches();
+}
+
+/**
+ * Enable Workbench Assignee Module
+ */
+function deployment_update_8058(&$sandbox) {
+  $modules = array(
+    'workbench_assignee',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+  drupal_flush_all_caches();
+}
+/**
+ * Enable Style Switcher & better_search Module
+ */
+function deployment_update_8059(&$sandbox) {
+  $modules = array(
+    'styleswitcher',
+    'better_search',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+  drupal_flush_all_caches();
+}
+/**
+ * Enable AAI Module
+ */
+function deployment_update_8060(&$sandbox) {
+  $modules = array(
+    'menuimage',
+    'aai',
+  );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+  drupal_flush_all_caches();
+}
+
+/**
+ * Enable Tender View
+ */
+function deployment_update_8061(&$sandbox) {
+  $modules = array(
+    'view_tender',
+       );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}
+/**
+ * Enable Board Member Profile Popup
+ */
+function deployment_update_8062(&$sandbox) {
+  $modules = array(
+    'view_comember_details',
+       );
+  $messages = array();
+  $modules_enabled = deployment_module_enable($modules, TRUE);
+
+  if($modules_enabled) {
+    $messages[] = implode(", ", $modules) . t(' All modules are enabled.');
+  } else {
+    throw new DrupalUpdateException('Something went wrong; A dependency was missing.');
+  }
+
+  drupal_flush_all_caches();
+}

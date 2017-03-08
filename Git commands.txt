@@ -1,0 +1,48 @@
+     git checkout cd aai ------------ After reaching in working dir
+1. git branch
+2. To Take changes of others
+3. Git pull origin dev
+4. To take changes in local branch
+5. git checkout media
+6. git merge dev
+7. git statusgit 
+
+7.a --->  Git add
+8. git commit -m "message" file path
+9. git checkout dev
+10. git pull origin dev
+11. git merge media
+12. git push origin dev
+13. git checkout media 
+14. git merge dev
+when comming files in a folder give path of that folder
+Extra 
+14. Always work in local branch say media
+pwd : anil1234
+15 Git Stash to remove all changes in local branch
+
+90-27ogac-,47
+*******************************
+16 To resolve conflict
+git add lib/hello.html
+git commit -m "Merged master fixed conflict."
+git push
+git checkout media 
+ git merge dev
+*******************************
+
+p@ssw0rd@321
+
+3941
+
+git commit
+git checkout dev
+git pull
+git merge media
+git push
+git checkout media
+git merge dev
+
+
+8744058031 Atul
+09873099936 Sumit

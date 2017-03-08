@@ -1,0 +1,4 @@
+name = deployment
+description = Global Deployment Module
+core = 7.x
+package = custom

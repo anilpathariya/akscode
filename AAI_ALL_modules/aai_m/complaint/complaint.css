@@ -1,0 +1,151 @@
+
+  input[type="submit"] {
+    background-image: -ms-linear-gradient(top, #2770C4 0%, #183071 100%);
+    background-image: -moz-linear-gradient(top, #2770C4 0%, #183071 100%);
+    background-image: -o-linear-gradient(top, #2770C4 0%, #183071 100%);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #2770C4), color-stop(100, #183071));
+    background-image: -webkit-linear-gradient(top, #2770C4 0%, #183071 100%);
+    background-image: linear-gradient(to bottom, #2770C4 0%, #183071 100%);
+    padding: 10px 20px 10px 20px;
+    color: #fff;
+    border: 0px;
+}
+input[type="submit"]:hover{
+
+/* IE10+ */ 
+background-image: -ms-linear-gradient(top, #183071 0%, #2770C4 100%);
+
+/* Mozilla Firefox */ 
+background-image: -moz-linear-gradient(top, #183071 0%, #2770C4 100%);
+
+/* Opera */ 
+background-image: -o-linear-gradient(top, #183071 0%, #2770C4 100%);
+
+/* Webkit (Safari/Chrome 10) */ 
+background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #183071), color-stop(100, #2770C4));
+
+/* Webkit (Chrome 11+) */ 
+background-image: -webkit-linear-gradient(top, #183071 0%, #2770C4 100%);
+
+/* W3C Markup */ 
+background-image: linear-gradient(to bottom, #183071 0%, #2770C4 100%);
+
+padding: 10px 20px 10px 20px;
+    color: #fff;
+	border:0px;
+}
+
+
+
+
+#complaint-filter-form  .form-item input{
+width:225px !important;
+}
+#complaint-filter-form  .form-actions{
+width:33%;
+float:right;
+text-align:right;
+margin-right:20px;
+}
+#complaint-site-form  label, #complaint-filter-form  label{
+    display: block;
+    margin-bottom: .5rem;
+font-weight:bold;
+}
+.form-actions , .form-item-airport-id , .form-item-complaint-category-id, .subcategory_replace, .form-item-complainer-name, 
+.form-item-complainer-email, .form-item-complainer-contact-no, 
+.form-item-flight-number, .form-item-date-of-journey, .form-item-number-of-visit-past-twelve-month, 
+.form-item-files-attachment , .form-actions{
+width:33%;
+float:left;
+}
+#complaint-assign .form-item, #complaint-forward .form-item{
+
+clear:both
+	
+}
+#complaint-filter-form .form-item{
+margin:0px;
+}
+#complaint-filter-form .container-inline-date{
+clear:none;
+}
+#complaint-filter-form  .form-item-complaint-ticket-number, #complaint-filter-form .form-item-complainer-email,  #complaint-filter-form .container-inline-date{
+width:25%;
+float:left;
+}
+.form-item-complainer-address, .form-item-complaint-details{
+width:66%;
+float:left;
+
+}
+
+
+.tableheader-processed th {
+    background: #2E3D4A;
+    border-right: 1px solid #c8c7c7;
+    color: #fff;
+    padding: 10px;
+    font-weight: bold;
+}
+.tableheader-processed  th.active{
+ background: #2E3D4A;
+}
+.tableheader-processed th a{
+color:#fff;
+}
+.tableheader-processed  table th{
+text-align:center;
+font-size:12px;
+
+}
+.tableheader-processed  table td a{
+color:#ff0 !important;
+}
+.tableheader-processed  table td{
+
+font-size:12px;
+line-height: 15px;
+} 
+.tableheader-processed 	td:nth-child(odd){
+
+background-color:#e5eaff !important;
+}
+.tableheader-processed  td:nth-child(even){
+background-color:#fbfbfb !important;
+}
+.complaint-view 	tr:nth-child(odd){
+
+background-color:#e5eaff !important;
+}
+.complaint-view th{
+background:none;
+}
+.complaint-view   tr:nth-child(even){
+background-color:#fbfbfb !important;
+}
+
+.complaint-view{
+width : 40%;
+margin-right:1%;
+float:left;
+}
+.complaint-history{
+width : 59%;
+}
+
+caption {
+    display: table-caption;
+    text-align: center;
+	font-size:15px;
+	padding-bottom:10px;
+	font-weight:200;
+}
+
+.complaint-maintainer{
+width : 49%;
+}
+
+.complaint_permission_table{
+width : 49%;
+}

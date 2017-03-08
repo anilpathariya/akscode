@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<aai_tender>
+    <tender>
+		<tender_no>AAI/AT/ENGG(E)/L&amp;B/NIT-15/2014-15/2738-49</tender_no>
+		<location>Kolkata</location>
+		<department>ENGINEERING ELECTRICAL</department>
+		<nature_of_work>Supply of GLF Spares at Agartala Airport</nature_of_work>
+		<mode_of_tender_enquiry>open</mode_of_tender_enquiry>
+		<date_of_publish_on_nit>03/11/2014</date_of_publish_on_nit>
+		<type_of_bidding_system>Two Bid</type_of_bidding_system>
+		<last_date_of_receipt_of_tender>03/11/2014</last_date_of_receipt_of_tender>
+		<no_of_tender_received>8</no_of_tender_received>
+		<name_of_parties_qualified_after_tech_evaluation>abc,cde,xyz</name_of_parties_qualified_after_tech_evaluation>
+		<name_of_parties_not_qualified_after_tech_evaluation>tpq,rst</name_of_parties_not_qualified_after_tech_evaluation>
+		<whether_tender_awarded_to_lowest_eval>yes</whether_tender_awarded_to_lowest_eval>
+		<contract_no>AAI/AT/ENGG(E)/L&amp;B/MW-24/2014-15/4043-50</contract_no>
+		<date_of_award>03/11/2014</date_of_award>
+		<name_of_contractor>M/S.AMA PVT. LTD., MUMBAI</name_of_contractor>
+		<value_of_contract>3.86Lakh Rs(INR)</value_of_contract>
+		<scheduled_completion_of_supplies>03/11/2014</scheduled_completion_of_supplies>
+		<remarks>Work in Progress</remarks>
+    </tender>
+</aai_tender>

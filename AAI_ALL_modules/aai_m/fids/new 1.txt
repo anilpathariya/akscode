@@ -1,0 +1,30 @@
+SELECT node.nid AS nid
+FROM 
+{node} node
+
+
+INNER JOIN {field_data_field_related_airport} field_data_field_related_airport ON node.nid = field_data_field_related_airport.entity_id AND field_data_field_related_airport.entity_type = 'node'
+
+
+
+WHERE (( (node.status = '1') AND (node.type IN  ('airports')) AND (field_data_field_related_airport.field_related_airport_tid = '237') ))
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  // Query all of the nids of a particular content type.
+  $nids = db_select('node', 'n')
+    ->fields('n', array('nid'))
+    ->condition('type', 'airports', '=')	
+	->condition('n.field_data_field_related_airport','237','=') 
+    ->execute()
+    ->fetchCol();
+  
+  // Get all of the article nodes.
+  $nodes = node_load_multiple($nids);

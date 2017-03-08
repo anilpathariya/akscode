@@ -1,0 +1,287 @@
+@charset "utf-8";
+/* CSS Document */
+
+ @font-face {
+    font-family: 'Raleway';
+    src: url('../fonts/Raleway-Regular.ttf');
+}
+
+.bold
+{
+    font-family: "Raleway-bold"; !important;
+    src: url('../fonts/Raleway-Bold.ttf');
+}
+
+
+.extraBold
+{
+    font-family: "Raleway"; !important;
+    src: url('../fonts/Raleway-ExtraBold.ttf');
+}
+
+
+.extraLight
+{
+    font-family: "Raleway"; !important;
+    src: url('../fonts/Raleway-ExtraLight.ttf');
+}
+
+
+.heavy
+{
+    font-family: "Raleway"; !important;
+    src: url('../fonts/Raleway-Heavy.ttf');
+}
+
+
+.light
+{
+    font-family: "Raleway"; !important;
+    src: url('../fonts/Raleway-Light.ttf');
+}
+
+
+.medium
+{
+    font-family: "Raleway"; !important;
+    src: url('../fonts/Raleway-Medium.ttf');
+}
+
+
+
+.thin
+{
+    font-family: "Raleway"; !important;
+    src: url('../fonts/Raleway-Thin.ttf');
+}
+
+
+.semi_bold
+{
+    font-family: "Raleway"; !important;
+    src: url('../fonts/Raleway-SemiBold.ttf');
+}
+
+#main{width:100%; height:100%; margin:0px; padding:0px;}
+.topbar{ background:#424242; color:#FFF; padding:5px 0px;}
+.topbar a.skipcontent{ text-decoration:none; color:#FFF; padding:3px 0px; display:block;}
+.topbar ul.textResize{ margin:0px; padding:0px; list-style:none;}
+.topbar ul.textResize li{ display:inline-block; border-right:#636363 solid 1px; padding:3px 0px;}
+.topbar ul.textResize li a{ text-decoration:none; color:#FFF; padding:0px 10px;}
+.topbar ul.textResize .theme1{ background:#FFF;}
+.topbar ul.textResize .theme2{ background:#000;}
+.topbar ul.textResize .theme1 a{color:#000;}
+.topbar .btn{ padding:2px 10px;}
+.topbar .user{background:#FFF; padding:4px 6px; color:#3c4ba7; -webkit-border-radius: 50px; -moz-border-radius: 50px; border-radius: 50px; cursor:pointer; display:inline-block;}
+.topbar .user:hover{ background:#0099cc; color:#fff;}
+.topbar .userdropdownmenu{ padding:15px; min-width:260px; border-radius:0;}
+.topbar .userdropdownmenu .text{color:#333;}
+.topbar .userdropdownmenu:before {
+  position: absolute;
+  top: -7px;
+  left: 9px;
+  display: inline-block;
+  border-right: 7px solid transparent;
+  border-bottom: 7px solid #fff;
+  border-left: 7px solid transparent;
+  content: '';
+}
+
+
+.navbar{ margin-bottom:0px; border-bottom:#bdbdbd solid 1px;}
+.navbar-brand{ height:90px; padding:5px 15px !important;}
+.navbar-nav{ margin:25px 0px 0px 0px;}
+.navbar-nav > li > a{text-transform:uppercase; color:#333; font-weight:bold; padding:15px 25px; }
+.navbar-nav > li > a:hover, .navbar-nav > li > a:focus{ color:#FFF;}
+
+html,body {
+  height:90%;
+ 
+}
+
+.carousel-inner,.carousel,.item,.fill {
+  height:100%;
+  width:100%;
+}
+
+
+.bg-overlay{ background:rgba(0,0,0,0.4);
+	 height:100%;
+  	width:100%;}
+
+.carousel-inner .carousel-inner-caption{ padding:120px 0px;}
+
+.carousel-inner .carousel-inner-caption .num-text{ font-size:100px}
+.carousel-inner .carousel-inner-caption .big-text{ font-size:46px; color:#FFF; text-shadow:0 1px 1px rgba(0, 0, 0, 0.4); font-family: Raleway; font-weight:bold;}
+.carousel-inner .carousel-inner-caption .normal-text{ font-size:26px; color:#FFF; padding:10px 5px; margin:20px 0px; font-family: Raleway; text-shadow:0 1px 1px rgba(0, 0, 0, 0.3)}
+
+.airportsCount{ font-size:80px; color:#FFF; text-shadow:0 1px 1px rgba(0, 0, 0, 0.4)}
+.airportsnNomText{ font-size:26px; color:#FFF; line-height:26px; padding:35px 0px 35px 10px;}
+
+.multiTab{ position:fixed; width:100%; bottom:0px;}
+
+
+.multiTab .defaultTab{
+	background: -webkit-linear-gradient(#b1b0b0, #dfdfdf, #b1b0b0); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(#b1b0b0, #dfdfdf, #b1b0b0); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(#b1b0b0, #dfdfdf, #b1b0b0); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(#b1b0b0, #dfdfdf, #b1b0b0); /* Standard syntax (must be last) */
+	font-size:15px; text-transform:uppercase; padding:4px 15px; font-weight:bold;
+	cursor:pointer;
+}
+
+
+
+
+
+.multiTab .defaultTab:before{
+	background:url(../images/aeroplane-icon.png) no-repeat;
+	content:"";
+	background-position:left center;
+	padding:10px 15px 10px 10px;
+	
+}
+
+.
+
+.multiTab .defaultTab .fa{ font-size:20px; margin-right:20px;}
+
+.multiTab .defaultTab a{ text-decoration:none; color:#000;}
+.multiTab .col-md-3{ padding-left:5px; padding-right:5px;}
+
+.aai-information{ position:absolute; top:60px; right:0px; cursor:pointer;}
+#myAnimation{ width:84px; height:74px; position:absolute;}
+
+.faa-float.animated, .faa-float.animated-hover:hover, .faa-parent.animated-hover:hover > .faa-float {
+    animation: 2s linear 0s normal none infinite running float;
+}
+.faa-float.animated-hover.faa-fast:hover, .faa-float.animated.faa-fast, .faa-parent.animated-hover:hover > .faa-float.faa-fast {
+    animation: 1s linear 0s normal none infinite running float;
+}
+.faa-float.animated-hover.faa-slow:hover, .faa-float.animated.faa-slow, .faa-parent.animated-hover:hover > .faa-float.faa-slow {
+    animation: 3s linear 0s normal none infinite running float;
+}
+@keyframes pulse {
+0% {
+    transform: scale(1.1);
+}
+50% {
+    transform: scale(0.8);
+}
+100% {
+    transform: scale(1.1);
+}
+}
+
+@keyframes float {
+0% {
+    transform: translateY(0px);
+}
+50% {
+    transform: translateY(-6px);
+}
+100% {
+    transform: translateY(0px);
+}
+}
+
+
+@keyframes bounce {
+0%, 10%, 100%, 20%, 50%, 80% {
+    transform: translateY(0px);
+}
+40%, 60% {
+    transform: translateY(-15px);
+}
+}
+.faa-bounce.animated, .faa-bounce.animated-hover:hover, .faa-parent.animated-hover:hover > .faa-bounce {
+    animation: 2s ease 0s normal none infinite running bounce;
+}
+.faa-bounce.animated-hover.faa-fast:hover, .faa-bounce.animated.faa-fast, .faa-parent.animated-hover:hover > .faa-bounce.faa-fast {
+    animation: 1s ease 0s normal none infinite running bounce;
+}
+.faa-bounce.animated-hover.faa-slow:hover, .faa-bounce.animated.faa-slow, .faa-parent.animated-hover:hover > .faa-bounce.faa-slow {
+    animation: 3s ease 0s normal none infinite running bounce;
+}
+
+.animate-zoom {
+    animation: 0.6s ease 0s normal none 1 running animatezoom;
+}
+@keyframes animatezoom {
+0% {
+    transform: scale(0);
+}
+100% {
+    transform: scale(1);
+}
+}
+
+
+.passengerInfo{ background:rgba(255,213,197,0.7); position:absolute; top:22%; right:2%; display:none;}
+.passengerInfo-header{ font-size:18px; color:#d5403f; padding:5px 15px; font-weight:bold;}
+.arrivals-icon{ background:url(../images/arrivals.png) no-repeat; padding:5px 10px 5px 35px;}
+.departures-icon{ background:url(../images/departures-icon.png) no-repeat; padding:5px 10px 5px 35px;}
+.transit-icon{ background:url(../images/transit-icon.png) no-repeat; padding:5px 10px 5px 35px;}
+.closeBtn{ font-size:20px; color:#FFF; cursor:pointer; padding:0px; float:right;}
+.closeBtn:hover{ color:#F00;}
+#tab-3{ margin-right: 10px;}
+
+
+#achievment, #whatsNews, #VisionMission{ display:none;}
+
+.TabModal{
+	position:fixed;
+	z-index:999;
+	left:0;
+	bottom:90px;
+	width:100%;
+	
+	
+}
+.TabModal-content{
+	background:#FFF;
+	margin:auto;
+	width:1170px;
+}
+.TabModal-close{
+	color: #000;
+    font-size: 18px;
+    font-weight: bold;
+	float:right;
+	width:15px;
+	height:15px;
+	margin-right:3px;
+
+	
+}
+.TabModal-body{
+	padding:20px;
+}
+
+.TabModal-close:hover,
+.TabModal-close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.achievement{
+	background:#032940;)
+}
+
+
+
+.footer{ background:rgba(0,0,0,0.5)}
+ul.footerlist{ list-style:none; margin:0px; padding:0px;}
+ul.footerlist li{ display:inline; padding:0px 10px; border-right:#bdbdbd solid 1px;}
+ul.footerlist li a{ text-decoration:none; display:inline-block; color:#a8a8a8; padding:4px 0px; font-size:12px;}
+ul.footerlist li a:hover{ color:#009da3;}
+.footer-inforamtion{ background:#000; padding:4px 0px; color:#838383;}
+.footer-inforamtion ul{ margin-bottom:0px;}
+.footer-inforamtion a{ color:#CCC;}
+
+
+
+
+
+

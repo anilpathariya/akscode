@@ -1,0 +1,224 @@
+<?php
+
+/**
+* Implements hook_block_info().
+*/
+function fids_block_info() {
+  $blocks = array();
+
+  $blocks['flights_arrival'] = array(
+    'info' => t('Flight Arrival Information'),
+  );
+  $blocks['flights_departure'] = array(
+    'info' => t('Flight Departure Information'),
+  );
+
+  return $blocks;
+}
+
+/**
+* Implements hook_block_view().
+*/
+function fids_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'flights_arrival':
+      $block['subject'] =  t('Flight Arrival Information');
+      $block['content'] = flight_arrival_block_content();
+      break;
+	
+	case 'flights_departure':
+      $block['subject'] = t('Flight Departure Information');
+      $block['content'] = flight_departure_block_content();
+      break;
+	  
+  }
+
+  return $block;
+}
+
+function flight_arrival_block_content() {
+      
+	 $displayStatus = drupal_render(drupal_get_form('fids_arrival_form'));
+	 return $displayStatus;
+}
+
+function fids_arrival_form($form, &$form_state ,$args) {
+
+
+ 
+// die;
+  $options = array(
+  '0' => t('Domestic'),
+  '1' => t('International'), 
+);
+
+$form['flight_arrival_type'] = array(
+  '#type' => 'radios',
+  '#options' => $options,
+  '#default_value' => 0,
+   '#ajax' => array(
+      'callback' => 'flight_arrival_info',
+      'wrapper' => 'flight-arrival-info-wrapper',
+      'method' => 'html',
+      'effect' => 'fade',
+    ),
+);
+
+  $form['flight_arrival_info_wrappers'] = array(
+    '#prefix' => '<div id="flight-arrival-info-wrapper">',
+    '#suffix' => '</div>',
+    '#weight' => 2,
+  );
+  
+ $form['airports']= array(
+    '#type' => 'hidden',
+    '#value' => $args,
+);
+ 
+  return $form;
+}
+// flight Departure Information
+
+function flight_departure_block_content() {
+
+	 $displayStatus = drupal_render(drupal_get_form('fids_departure_form'));
+	 return $displayStatus;
+}
+
+function fids_departure_form($form, &$form_state) {
+  $options = array(
+  '0' => t('Domestic'),
+  '1' => t('International'), 
+);
+
+$form['flight_departure_type'] = array(
+  '#type' => 'radios',
+  '#options' => $options,
+   '#ajax' => array(
+      'callback' => 'flight_departure_info',
+      'wrapper' => 'flight-departure-info-wrapper',
+      'method' => 'html',
+      'effect' => 'fade',
+    ),
+);
+
+  $form['flight_departure_info_wrappers'] = array(
+    '#prefix' => '<div id="flight-departure-info-wrapper">',
+    '#suffix' => '</div>',
+    '#weight' => 2,
+  );
+ 
+  return $form;
+}
+
+// Arrival 
+function flight_arrival_info($form, $form_state){
+    $airportVal = $form_state['values']['airports'];
+	$displayStatus = '';
+	$flightType = $form_state['values']['flight_arrival_type'];
+	$query = db_select('NEWWEB_FIDS_DATA','nfd');
+	$query->fields('nfd');
+	//$query->condition('FIDS_LOCAL_AIRPORT',$airportVal,'=');
+	$query->condition('FIDS_ARRIVAL_DEPT_FLAG',0,'=');
+	if($flightType == 0){
+	$query->condition('FIDS_FLIGHT_TYPE',0,'=');
+	}if($flightType == 1){
+	$query->condition('FIDS_FLIGHT_TYPE',1,'=');
+	}
+	$query->where('FIDS_SCHD_DATE_TIME >= DATE_SUB(NOW(), INTERVAL 48 HOUR)');
+	$query->where('FIDS_SCHD_DATE_TIME <= DATE_ADD(NOW(), INTERVAL 48 HOUR)');
+	$query->orderBy('FIDS_SCHD_DATE_TIME', 'ASC');//ORDER BY created
+	$query->range(0,10);//LIMIT to 2 records
+	$resultArrival = $query->execute()->fetchAll();
+	//print_r($resultArrival);
+	foreach ($resultArrival as $arrVal) {
+
+	$teminalNo = $arrVal->FIDS_TERM_CODE;
+	$flightNo = $arrVal->FIDS_FLIGHT_NO;
+	
+	 $flightCode = substr($flightNo, 0, 2);
+	 
+	 if($flightCode == "AI"){
+	 $flightName = "Air India";
+	 }elseif($flightCode == "6E"){
+	 $flightName = "Indigo";
+	 }
+	
+	$flightStatus = $arrVal->FIDS_FLIGHT_STATUS;
+	
+	if($flightStatus == "Arrived"){
+	     $ArrTime = $arrVal->FIDS_ACTUAL_DATE_TIME;	
+		$disHourmin = date('H:i',strtotime($ArrTime));
+	}
+	elseif($flightStatus == "Delay"){
+		 $expectedTime = $arrVal->FIDS_EXPECTED_DATE_TIME;
+	    $disHourmin = date('H:i',strtotime($expectedTime));
+	}
+	
+	
+	 $displayStatus .= "<table><tr><td>$disHourmin</td><td>$flightName -- $flightNo</td><td>$teminalNo</td><td>$flightStatus</td></tr></table>";
+	 
+	
+	}	
+	
+	 return $displayStatus;
+	 
+	 
+}
+
+
+// Departure 
+function flight_departure_info($form, $form_state){
+
+
+	$displayStatus = '';
+	$flightType = $form_state['values']['flight_departure_type'];
+	$query = db_select('NEWWEB_FIDS_DATA','nfd');
+	$query->fields('nfd');
+	$query->condition('FIDS_ARRIVAL_DEPT_FLAG',1,'=');
+	if($flightType == 0){
+	$query->condition('FIDS_FLIGHT_TYPE',0,'=');
+	}if($flightType == 1){
+	$query->condition('FIDS_FLIGHT_TYPE',1,'=');
+	}
+	$query->where('FIDS_SCHD_DATE_TIME >= DATE_SUB(NOW(), INTERVAL 48 HOUR)');
+	$query->where('FIDS_SCHD_DATE_TIME <= DATE_ADD(NOW(), INTERVAL 48 HOUR)');
+	$query->orderBy('FIDS_SCHD_DATE_TIME', 'ASC');//ORDER BY created
+	$query->range(0,10);//LIMIT to 2 records
+	$resultArrival = $query->execute()->fetchAll();
+	//print_r($resultArrival);
+	foreach ($resultArrival as $arrVal) {
+
+	$teminalNo = $arrVal->FIDS_TERM_CODE;
+	$flightNo = $arrVal->FIDS_FLIGHT_NO;
+	
+	 $flightCode = substr($flightNo, 0, 2);
+	 
+	 if($flightCode == "AI"){
+	 $flightName = "Air India";
+	 }elseif($flightCode == "6E"){
+	 $flightName = "Indigo";
+	 }
+	
+	$flightStatus = $arrVal->FIDS_FLIGHT_STATUS;
+	
+	if($flightStatus == "Departed"){
+	     $ArrTime = $arrVal->FIDS_ACTUAL_DATE_TIME;	
+		$disHourmin = date('H:i',strtotime($ArrTime));
+	}
+	elseif($flightStatus == "Delay"){
+		 $expectedTime = $arrVal->FIDS_EXPECTED_DATE_TIME;
+	    $disHourmin = date('H:i',strtotime($expectedTime));
+	}
+	
+	 $displayStatus .= "<table><tr><td>$disHourmin</td><td>$flightName</td><td>$teminalNo</td><td>$flightStatus</td></tr></table>";
+	 
+	
+	}	
+	
+	 return $displayStatus;
+	 
+	 
+}

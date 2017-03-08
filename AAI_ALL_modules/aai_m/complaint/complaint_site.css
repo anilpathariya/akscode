@@ -1,0 +1,22 @@
+
+.complaint-view{
+width : 30%;
+margin-right:1%;
+float:left;
+}
+.complaint-history{
+width : 69%;
+}
+
+caption {
+    padding:10px 0px;
+    text-align: center;
+	font-size:20px;
+	padding-bottom:10px;
+	font-weight:200;
+	color:#3c4ba7;
+}
+#complaint-site-form .container-inline-date{
+float:left;
+width:33%;	
+}

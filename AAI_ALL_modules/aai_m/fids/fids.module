@@ -1,0 +1,543 @@
+<?php
+/**
+* Implements hook_block_info().
+*/
+function fids_block_info() {
+  $blocks = array();
+
+  $blocks['flights_arrival'] = array(
+    'info' => t('Flight Arrival Information'),
+  );
+  $blocks['flights_departure'] = array(
+    'info' => t('Flight Departure Information'),
+  );
+  
+  $blocks['flights_arrival_schedules'] = array(
+    'info' => t('Flight Arrival Schedule Information'),
+  );
+  $blocks['flights_departure_schedules'] = array(
+    'info' => t('Flight Departure Schedule Information'),
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function fids_menu() {
+  $items = array();
+  // arg(2) is airport name; arg(3) is arrival or departure.
+  $items['airports/flights/%/%'] =  array (
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('flights_detail',),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/flights_list.inc',
+    'file path' => drupal_get_path('module', 'fids'),
+  );
+  // arg(1) is airport name
+  $items['airports/flights/%'] =  array (
+    'page callback' => 'flights_detail',
+    //'page arguments' => array('flights_detail',),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/flights_list.inc',
+    'file path' => drupal_get_path('module', 'fids'),
+  ); 
+  $items['fids-search-flight-detail'] = array(
+    'page callback' => 'fids_search_flight_detail',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/flights_list.inc',
+    'file path' => drupal_get_path('module', 'fids'),
+  );
+  $items['fids-search-flight-schedule-detail'] = array(
+    'page callback' => 'fids_search_flight_schedule_detail',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/flights_list.inc',
+    'file path' => drupal_get_path('module', 'fids'),
+  );
+  $items['fids-airlines-detail'] = array(
+    'page callback' => 'fids_airlines_detail',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/flights_list.inc',
+    'file path' => drupal_get_path('module', 'fids'),
+  );
+  $items['page-not-found'] =  array(
+    'title' => t('Page Not Found'),
+    'page callback' => 'page_not_found',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['test'] =  array(
+    'page callback' => 'test',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  
+  $items['airports/flights-schedule/%'] =  array (
+    'page callback' => 'flights_detail',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'inc/flights_list.inc',
+    'file path' => drupal_get_path('module', 'fids'),
+  ); 
+  return $items;
+}
+
+/**
+ *  callback for page-not-found
+ */
+function page_not_found() {
+  return '';
+}
+
+/**
+ * Implements utility function to print_r data.
+ */
+function out($data) {
+  echo '<pre>';
+  print_r($data);
+}
+
+function test() { 
+  drupal_access_denied();
+  die;
+
+  //$functions = AAI::getInstance();
+  //$functions->aaiFetchFIDS();
+
+  // include nusoap library
+  /*$lib_pth = drupal_get_path('module', 'fids') . '/lib/nusoap.php';
+  require_once($lib_pth);
+
+  // get all url to get FIDS data
+  $fids_api_urls = unserialize(variable_get('fids_xml_feeds'));
+
+  // set parameters for SOAP call
+  $proxyhost = isset($_POST['proxyhost']) ? $_POST['proxyhost'] : '';
+  $proxyport = isset($_POST['proxyport']) ? $_POST['proxyport'] : '';
+  $proxyusername = isset($_POST['proxyusername']) ? $_POST['proxyusername'] : '';
+  $proxypassword = isset($_POST['proxypassword']) ? $_POST['proxypassword'] : '';
+
+  $item = $fids_api_urls[3];
+  echo $url = $item['feed_url']; 
+  $operation = $item['callback'];
+  $res_type = $item['res_type'];
+
+  echo "<br>" . $operation . ' ' . $val_in . '<br/>';
+  $client = new nusoap_client($url, 'wsdl', $proxyhost, $proxyport, $proxyusername, $proxypassword);
+  $client->soap_defencoding = 'UTF-8';
+   
+    $err = $client->getError();
+    if ($err) {
+      // iff error occurs, do watchdog entry and skip current iteration
+      $this->aaiWatchdog('Constructor error, fetching details from $url '. $err, WATCHDOG_ERROR);
+      echo 'ERROR ' . $err;
+    }
+
+    $param = array('Symbol' => 'IBM');
+    $result = $client->call($operation, array('parameters' => $param), '', '', false, true);
+  
+  // Check for a fault
+      if ($client->fault) {
+        //$this->aaiWatchdog('Constructor error, fetching details from $url '. $result, WATCHDOG_ERROR);
+        echo 'FAULT';
+      } else {
+        // Check for errors
+        $err = $client->getError();
+        if ($err) {
+          echo "ERROR " . $err;
+        } else {
+          // Display the result
+          //out($result); die;
+          switch ($res_type) {
+            case 1:
+              $fids_data = $result['return'];
+              $fids_data = (array) simplexml_load_string($fids_data);
+              $fids_data = $fids_data['Detail_Movements'];
+              break;
+            case 2:
+              $fids_data = $result['FlightFIDSResult']['NewDataSet']['Detail_Movements'];
+              while ($data = current($fids_data)) {
+                if (is_array($data)) {
+                  $data = (object) $data;
+                }
+                out($data);die;
+                next($fids_data);
+              }
+              break;
+          }
+          out($fids_data);
+        }
+      }
+      die;*/
+}
+
+/**
+ * Implements function to alter sitemap menu ordering
+ */
+function fids_site_map_menu_list_alter(&$mids) {
+  $mids = array (
+    'main-menu' => 'main-menu',
+    'menu-infosarthee-header-menu' => 'menu-infosarthee-header-menu',
+    'menu-footer-menu-strip' => 'menu-footer-menu-strip',
+    'menu-footer-menu-bar' => 'menu-footer-menu-bar',
+  );
+}
+
+/**
+ * Implements function to alter block menu before rendering.
+ */
+function fids_menu_block_tree_alter(&$tree, &$config) {
+
+  /*echo $menu_name = $config['menu_name'];
+  echo $menu_admin_title = $config['admin_title'];
+
+  if ($menu_name == 'main-menu' && $menu_admin_title != 'Hambuger Menu Link') {
+    // check if the current device is non desktop/laptop
+    $detect = mobile_detect_get_object();
+    
+    if (!$detect->isMobile() && !$detect->isTablet()) {
+      $config['expanded'] = 0;
+      foreach ($tree as $k => $links) {
+        $tree[$k]['link']['expanded']  = 0;
+      }
+    }
+    //out($tree); die;
+  }*/
+  
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function fids_block_view($delta = 'flights_arrival') {
+  $block = array();
+
+  switch ($delta) {
+    case 'flights_arrival':
+      $block['subject'] =  t('Flight Arrival Information');
+      $block['content'] = flight_arrival_block_content();
+      break;
+  
+    case 'flights_departure':
+      $block['subject'] = t('Flight Departure Information');
+      $block['content'] = flight_departure_block_content();
+      break;
+	  
+	case 'flights_arrival_schedules':
+      $block['subject'] =  t('Flight Arrival Schedule Information');
+      $block['content'] = flight_arrival_schedule_block_content();
+      break;
+  
+    case 'flights_departure_schedules':
+      $block['subject'] = t('Flight Departure Schedule Information');
+      $block['content'] = flight_departure_schedule_block_content();
+      break;
+  }
+  return $block;
+}
+
+function flight_arrival_schedule_block_content(){}
+function flight_departure_schedule_block_content(){}
+
+/**
+ * Function to get arriving flights detail.
+ */
+function flight_arrival_block_content() {
+  $flight_frm = drupal_get_form('fids_arrival_form');
+  $displayStatus = drupal_render($flight_frm);
+  return $displayStatus;
+}
+
+/**
+ * Function to return arriving flights form.
+ */
+function fids_arrival_form($form, &$form_state) {
+  if (arg(0) == 'airports' && !arg(2)) {
+    $airport_name = arg(1);
+    $functions = AAI::getInstance();  
+    $term_details = $functions->aaiGetAirportTermDetails($airport_name, array('tid', 'fields_airport_code'));
+    $airport_code = $term_details['field_airport_code'];
+    // set session value for airport code
+    $_SESSION['airport_code'] = $airport_code;
+  }
+  $options = array(
+    '0' => t('Domestic'),
+    '1' => t('International')
+  );
+  $form['flight_arrival_type'] = array(
+    '#type' => 'radios',
+    '#options' => $options,
+    '#default_value' => 0,
+    '#ajax' => array(
+      'callback' => 'flight_arrival_info',
+      'wrapper' => 'flight-arrival-info-wrapper',
+      'method' => 'html',
+      'effect' => 'fade',
+    ),
+    '#attributes' => array('class' => array('arrival-dom'),),
+  );
+  $form['flight_arrival_info_wrappers'] = array(
+    '#prefix' => '<div id="flight-arrival-info-wrapper">',
+    '#suffix' => '</div>',
+    '#weight' => 2,
+  );
+  $form['airports']= array(
+    '#type' => 'hidden',
+    '#value' => $_COOKIE['airport_code']?$_COOKIE['airport_code']:'',
+  );
+ 
+  return $form;
+}
+
+/**
+ * flight Departure Information.
+ */
+function flight_departure_block_content() {
+  $displayStatus = drupal_render(drupal_get_form('fids_departure_form'));
+  return $displayStatus;
+}
+
+/**
+ * Function to return departing flights form.
+ */
+function fids_departure_form($form, &$form_state) {
+  $args = $_SESSION['airport_code'];
+ 
+  $options = array(
+    '0' => t('Domestic'),
+    '1' => t('International'), 
+  );
+
+  $form['flight_departure_type'] = array(
+    '#type' => 'radios',
+    '#options' => $options,
+    '#ajax' => array(
+      'callback' => 'flight_departure_info',
+      'wrapper' => 'flight-departure-info-wrapper',
+      'method' => 'html',
+      'effect' => 'fade',
+    ),
+  );
+  $form['flight_departure_info_wrappers'] = array(
+    '#prefix' => '<div id="flight-departure-info-wrapper">',
+    '#suffix' => '</div>',
+    '#weight' => 2,
+  );
+  $form['airports']= array(
+    '#type' => 'hidden',
+    '#value' => $args,
+  );
+  return $form;
+}
+
+/**
+ *  Ajax callback to fetch latest five, arriving flights detail.
+ *
+ * @todo
+ *   1) Fetch airport specific flights detail.
+ *   2) Logic to get flight name from flight code.
+ *   3) Admin configuration to set time interval for which to fetch flight details.
+ *
+ * @see
+ *   All data in the respective table is assumptuous in nature and can change
+ *   all together. 
+ */
+function flight_arrival_info($form, $form_state) {
+  global $user;
+  $form_state['rebuild'] = TRUE;
+  $form_state['fired'] = 1;
+  $values = $form_state['values'];
+  $airportVal = $_SESSION['airport_code'];
+
+  $displayStatus = '';
+  // store if flight is domestic(0) or international(1)
+  $flightType = $form_state['values']['flight_arrival_type'];
+
+  $functions = AAI::getInstance();
+  if($flightType == 0){
+      $flightType = "d";
+  } else { $flightType = "i";}
+  /*New Function*/
+  $condition = array(
+        'arrival_departure' => 'arrival',
+        'flight_type' => $flightType,       
+        'limit' => 6,
+  );
+  $resultArrival = $functions->aaiGetFilghtDetail($airportVal, $condition);
+  // $resultArrival = $functions->aaiArrivingDepartingFlight($airportVal, $flightType);
+  $flights_count = count($resultArrival);
+  $displayStatus = "<table>";
+  if ($flights_count) {
+    // add table header
+    $displayStatus .= "<tr>
+      <th>".t('Time')."</th>
+      <th>".t('Flight No.')."</th>
+      <th>".t('Terminal')."</th>
+      <th>".t('Status')."</th>
+    </tr>";
+    $counter = 1;
+    foreach ($resultArrival as $arrVal) { 
+      $teminalNo = $arrVal['FIDS_TERM_CODE'];
+      $flightNo = $arrVal['FIDS_ARRIVAL_FLIGHT_NO'];
+      // get flight time as per flight status.
+      $flightStatus = $arrVal['FIDS_ARRIVAL_STATUS'];
+      if ($flightStatus == "Arrived") {
+        $FlightTime = $arrVal['FIDS_ATA'];
+      } else {
+        $FlightTime = $arrVal['FIDS_ETA'];
+     }
+     $FIDS_STA = $arrVal->FIDS_ATA;
+     $FlightArrivalTime = date('H:i', strtotime($FIDS_STA));
+     // get the last flight status update, date and time.
+     $fids_last_update_time = date("d/m/Y h:i", strtotime($arrVal->FIDS_LAST_UPDATE_DATE_TIME));      
+     $displayStatus .= "<tr><td>$FlightArrivalTime</td><td>$flightNo</td><td>$teminalNo</td><td>" . t($flightStatus) . "</td></tr>";      
+     if ($counter == 5) {
+         break;
+      }
+     $counter++;
+    }
+    // Show more info link
+    if ($flights_count > 1) {
+      $airport_name = arg(1);
+      $displayStatus .= "<tr class='more_info'><td colspan = '4'>" . l(t('More Flight Arrivals >'), "airports/flights/arrival/$airport_name") . "</td></tr>";
+     }
+    } else {
+     $displayStatus .= "<tr><td colspan = '4'>" . t('No Record Found.') ."</td></tr>";
+  }
+  $displayStatus .= "</table>";
+  return $displayStatus;
+}
+
+/**
+ *  Ajax callback to fetch latest five, departing flights detail.
+ *
+ * @todo
+ *   1) Fetch airport specific flights detail.
+ *   2) Logic to get flight name from flight code.
+ *   3) Admin configuration to set time interval for which to fetch flight details.
+ *
+ * @see
+ *   All data in the respective table is assumptuous in nature and can change
+ *   all together.
+ */
+function flight_departure_info($form, $form_state) {
+  $form_state['rebuild'] = TRUE;
+  $form_state['fired'] = 1;
+  $values = $form_state['values']; 
+  $airportVal = $_SESSION['airport_code'];
+ 
+  $displayStatus = '';
+  $flightType = $form_state['values']['flight_departure_type'];
+  if($flightType == 0){
+  $flightType = "d";
+  } else { 
+    $flightType = "i";
+  }
+
+  $functions = AAI::getInstance();
+  // $resultDeparture = $functions->aaiArrivingDepartingFlight($airportVal, 'departure', $flightType);
+  $condition = array(
+        'arrival_departure' => 'departure',
+        'flight_type' => $flightType,       
+        'limit' => 6,
+      );
+  $resultDeparture = $functions->aaiGetFilghtDetail($airportVal, $condition);
+  $flights_count = count($resultDeparture);
+
+  $displayStatus = "<table>";
+  if ($flights_count) {
+    // add table header
+    $displayStatus .= "<tr>
+      <th>".t('Time')."</th>
+      <th>".t('Flight No.')."</th>
+      <th>".t('Terminal')."</th>
+      <th>".t('Status')."</th>
+    </tr>";
+    $counter = 1;
+    foreach ($resultDeparture as $arrVal) {
+      $teminalNo = $arrVal['FIDS_TERM_CODE'];
+      $flightNo = $arrVal['FIDS_DEPARTURE_FLIGHT_NO'];
+      //$flightCode = substr($flightNo, 0, 2);   
+      /*if($flightCode == "AI") {
+        $flightName = "Air India";
+      } elseif ($flightCode == "6E") {
+        $flightName = "Indigo";
+      }*/
+  
+      // get flight time as per flight status.
+      $flightStatus = $arrVal['FIDS_DEPARTURE_STATUS'];
+      if ($flightStatus == "Departed") {
+        $ArrTime = $arrVal['FIDS_ATD']; 
+        $disHourmin = date('H:i',strtotime($ArrTime));
+      } else {
+        $expectedTime = $arrVal['FIDS_ETD'];
+        $disHourmin = date('H:i',strtotime($expectedTime));
+      }  
+      $displayStatus .= "<tr><td>$disHourmin</td><td>$flightNo</td><td>$teminalNo</td><td>$flightStatus</td></tr>";
+      if ($counter == 5) {
+        break;
+      }
+      $counter++;
+    }
+    // Show more info link
+    if ($flights_count > 1) {
+      $airport_name = arg(1);
+      $displayStatus .= "<tr class='more_info'><td colspan = '4'>" . l(t('More Flight Departures >'), "airports/flights/departure/$airport_name") . "</td></tr>";
+    }
+  } else {
+    $displayStatus .= "<tr><td colspan = '4'>" . t('No Record Found.') . "</td></tr>";
+  }
+  $displayStatus .= "</table>";
+  return $displayStatus;
+}
+
+/**
+ * Implementation of hook_views_query_alter
+ * @param type $view
+ * @param type $query 
+ */
+function fids_views_query_alter(&$view, &$query) {
+  //simple example: change the order of the master display
+  //if you want to do it only  on a certain display add something 
+  // like  "&&$view->current_display == 'panel_page_1'"
+  if ($view->name == 'tender') {
+    // print_r($view->query);
+    //$view->query->orderby[0]['field'] = "CASE FIELD_NAME WHEN 'apple' THEN 1 WHEN 'zebra' THEN 2 WHEN 'banna' THEN 3 ELSE 4 END";
+  }
+}
+
+/**
+* Permission for  View Corporate Publisher Page
+*/
+function fids_permission() {
+  return array(
+    'View Corporate Publisher Page' => array(
+      'title' => t('View Corporate Publisher Page'),
+      'description' => t('View Corporate Publisher Page To Publish Assigned Nodes.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * We are using cron to send reminder notification To users whose content will expire within next 7 days
+ */
+function fids_cron() {
+  $functions = AAI::getInstance();
+
+  // check for expiring document & send notifications
+  $functions->aaiSendDocumentExpiryNotification();
+
+  // clear visitors counter table 'aai_visitors'
+  $functions->aaiClearVisitorsTable();
+
+  // update FIDS data
+  $functions->aaiFetchFIDS();
+}

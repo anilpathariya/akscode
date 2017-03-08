@@ -1,0 +1,4 @@
+name=aims
+description=AIMS Data
+package=custom
+core=7.x

@@ -1,0 +1,16 @@
+<?xml version="1.0" ?> 
+<aai_tender>
+  <tender>
+    <name>Display2</name> 
+    <region>Eastern</region> 
+    <airport>Jaipur</airport> 
+    <department>HR</department> 
+    <estimate_cost>5000</estimate_cost> 
+    <document_type>NIT</document_type> 
+    <document_name>fgh.pdf</document_name> 
+    <last_sale_date>10/25/2016</last_sale_date>
+    <corrigendum_1>cde.pdf</corrigendum_1> 
+    <corrigendum_2></corrigendum_2> 
+    <corrigendum_3></corrigendum_3> 
+  </tender>
+</aai_tender>

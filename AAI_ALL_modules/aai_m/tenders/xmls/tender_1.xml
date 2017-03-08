@@ -1,0 +1,16 @@
+<?xml version="1.0" ?> 
+<aai_tender>
+  <tender>
+    <name>Display</name> 
+    <region>Western</region> 
+    <airport>Porbandar</airport> 
+    <department>Commercial</department> 
+    <estimate_cost>1000</estimate_cost> 
+    <document_type>NIT</document_type> 
+    <document_name>abc.pdf</document_name> 
+    <last_sale_date>10/25/2016</last_sale_date> 
+    <corrigendum_1>test1.pdf</corrigendum_1> 
+    <corrigendum_2>test2.pdf</corrigendum_2> 
+    <corrigendum_3>test3.pdf</corrigendum_3> 
+  </tender>
+</aai_tender>

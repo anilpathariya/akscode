@@ -1,0 +1,1202 @@
+<?php
+/**********************Create Menus For Tender Module******************************/
+function tenders_menu() {
+$items = array();
+ $items['tenders_bipass/%'] = array( 
+    'title' => 'Tender Form', 
+    'description' => 'Tender Form',
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('tender_module_form',1), 
+    'access callback' => TRUE,
+
+  );
+  $items['tenders_status/%'] = array( 
+    'title' => 'Tender Status', 
+    'description' => 'Tender Status',
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('tender_status_form',1), 
+    'access callback' => TRUE,
+  );
+
+  $items['administer/previous_tender'] = array( 
+    'title' => t('Previous Tender'), 
+	'page callback' => 'fetch_previous_tender',
+    'access callback' => TRUE,
+  );
+
+  $items['administer/previous_awarded_tender'] = array( 
+    'title' => t('Previous Awarded Tender'), 
+	'page callback' => 'fetch_previous_awarded_tender',
+    'access callback' => TRUE,
+  );
+
+  $items['administer/settenderid'] = array( 
+    'title' => t('Previous Tender'), 
+	'page callback' => 'settenderid',
+    'access callback' => TRUE,
+  );
+
+  $items['administer/previous_tender_awarded/settenderid'] = array( 
+    'title' => t('Previous Tender Awarded'), 
+	'page callback' => 'awarded_settenderid',
+    'access callback' => TRUE,
+  );
+
+ $items['administer/circular_data'] = array( 
+    'title' => t('Circular Data'), 
+	'page callback' => 'fetch_circular_data',
+    'access callback' => TRUE,
+  );
+
+ 
+  return $items;
+}
+
+
+/****** Corrigendum Display list Function *********/
+
+function tender_module_form($args){
+$functions = AAI::getInstance();
+$lang = $functions->aaiCurrentLang();
+
+$nodeData = node_load(arg(1));
+
+ $IsCorrign = $nodeData->field_is_corrigendum[$lang][0]['value'];
+ $tenderName  = $nodeData->title;
+ 
+if(!empty($IsCorrign) && $IsCorrign ==1){
+
+$IsCorrignDetails  = $nodeData->field_corrigendum_details[$lang];
+echo "<div class='tender-name'>$tenderName</div>";
+echo "<table class='table table-bordered'><tr><th>Sr No</th> <th>Date of tender Extn</th><th>Document Type</th><th>Download</th></tr>";
+
+$srNo = 1;
+
+
+/******** Display corrigendum list in table (one or more corrigendum uploaded) **********/
+
+foreach($IsCorrignDetails as $corrigendumKey=> $corrigenduValue){
+
+	$CorrgnVal = $corrigenduValue['value'];
+	$entityCollection = entity_load('field_collection_item', array($CorrgnVal));
+	$documentTitle = $entityCollection[$CorrgnVal]->field_corrigendum_title[$lang][0]['value'];
+	$documentType = $entityCollection[$CorrgnVal]->field_corrigendum_document_type[$lang][0]['value'];
+	$tenderExnDate = date("d-M-Y", strtotime($entityCollection[$CorrgnVal]->field_corrigendum_date[$lang][0]['value']));
+	$filename = $entityCollection[$CorrgnVal]->field_upload_corrigendum[$lang][0]['filename'];
+	$file_uri = file_create_url(file_build_uri("corrigendum/$filename"));
+	echo "<tr><td>$srNo</td><td>$tenderExnDate</td><td>$documentType</td><td><a href ='$file_uri' target='_blank'>$documentTitle</a></td></tr>";
+	$srNo++;
+}
+echo "</table>";
+}else{
+	echo "<table><th><tr>No Corrigendum Found For This Tender</tr></th>";
+}
+exit;
+}
+
+
+/******************************************* Display Tender Details Page With Function********************************************/
+
+function tender_status_form($args){
+  $functions = AAI::getInstance();
+  $lang = $functions->aaiCurrentLang();
+
+		$nodeData = node_load(arg(1));
+		 // echo "<pre>";
+		 // print_r($nodeData);
+// exit;
+		// Define tender variable
+		$tenderName  = '';
+		$tenderRegionName = '';
+		$tenderAirName = '';
+		$tenderDeptName ='';
+		$tenderEstVAl ='';
+		$tenderCurrType= '';
+		$tenderDocType = '';
+		$tenderDocName = '';
+		$tenderEBidNo = '';
+		$tenderBidType = '';
+		$tenderStatus = '';
+		$tenderStatusVal = '';
+		$tenderMode = '';
+		$tenderModeVal = '';
+		$tenderlastSaleDate = '';
+		
+		// Tender Status Cancelled Variables
+		$cancelledMessage = '';
+		$cancelledDate = '';
+		
+		// CPQ Status Variables
+		$CPQTenderReceived = '';
+		$CPQDate = '';
+		
+		// Tender Technical Evaluation Variables
+		$TechTenderNoParty = '';
+		$TechTenderNameParty = '';
+		$TechTenderNotPartyNo = '';
+		$TechTenderNotPartyName = '';
+		$TechDate = '';
+		
+		// Tender Financial Evaluation Variables
+		$TenderNoPartyFinance = '';
+		$TenderNamePartyFinance = '';
+		$FinanceDate = '';
+		// Tender Awarded Variables
+		$awardedContNo = '';
+		$awardedDate = '';
+		$awardedNameContract = '';
+		$awardedValueContract = '';
+		$awardedScheduleCompletion = '';
+		$awardedRemark = '';
+		$tenderDesc = '';
+		
+		
+		
+		// Tender Reverse Auction Variables
+		$reverceauctiondate = '';
+		$reverceauctionqualifiedPartyno = '';
+		$reverceauctionPartyparticipate = '';
+		$reverceauctionprices = '';
+		
+		
+// Start Set All Tender Values in Variables
+		if(isset($nodeData->title)){
+			$tenderName  = $nodeData->title;
+		}
+		if(isset($nodeData->field_region[$lang][0]['tid']) && !empty($nodeData->field_region[$lang][0]['tid'])){
+			$tenderRegionVal = $nodeData->field_region[$lang][0]['tid'];
+			$tenderRegionArr = taxonomy_term_load($tenderRegionVal);
+			$tenderRegionName = t($tenderRegionArr->name);
+		}
+		if(isset($nodeData->field_airport[$lang][0]['tid']) && !empty($nodeData->field_airport[$lang][0]['tid'])){
+			$tenderAirVAl = $nodeData->field_airport[$lang][0]['tid'];
+			$tenderAirArr = taxonomy_term_load($tenderAirVAl);
+			$tenderAirName = t($tenderAirArr->name);
+		}
+		if(isset($nodeData->field_department[$lang][0]['tid']) && !empty($nodeData->field_department[$lang][0]['tid'])){
+			$tenderDeptVAl = $nodeData->field_department[$lang][0]['tid'];
+			$tenderDeptArr = taxonomy_term_load($tenderDeptVAl);
+			$tenderDeptName = $tenderDeptArr->name;
+		}
+		if(isset($nodeData->field_tender_estimate_cost[$lang][0]['value']) && !empty($nodeData->field_tender_estimate_cost[$lang][0]['value'])){
+			$tenderEstVAl = $nodeData->field_tender_estimate_cost[$lang][0]['value'];
+			$tenderCurrType = $nodeData->field_currency_type[$lang][0]['value'];
+		}
+		if(isset($nodeData->body[$lang][0]['value']) && !empty($nodeData->body[$lang][0]['value'])){
+			$tenderDesc = $nodeData->body[$lang][0]['value'];
+		}
+		//out($nodeData->field_csr_policy_titles);die;
+		if(isset($nodeData->field_csr_policy_titles[$lang][0]['value']) && !empty($nodeData->field_csr_policy_titles[$lang][0]['value'])){
+			$tenderDocType = $nodeData->field_csr_policy_titles[$lang][0]['value'];
+		}
+		if(isset($nodeData->field_upload_document[$lang][0]['filename'])){
+			$tenderDocName = $nodeData->field_upload_document[$lang][0]['filename'];
+		}
+		if(isset($nodeData->field_tender_e_bid_no[$lang][0]['value']) && !empty($nodeData->field_tender_e_bid_no[$lang][0]['value'])){
+			$tenderEBidNo = $nodeData->field_tender_e_bid_no[$lang][0]['value'];
+		}
+		if(isset($nodeData->field_tender_bid_type[$lang][0]['value']) && !empty($nodeData->field_tender_bid_type[$lang][0]['value'])){
+			$tenderBidType = $nodeData->field_tender_bid_type[$lang][0]['value'];
+		}
+		if(isset($nodeData->field_tender_status[$lang][0]['value']) && !empty($nodeData->field_tender_status[$lang][0]['value'])){
+			$tenderStatus = $nodeData->field_tender_status[$lang][0]['value'];
+			if($tenderStatus == 1){
+			$tenderStatusVal = "Cancelled";
+			}elseif($tenderStatus == 2){
+			$tenderStatusVal = "PQQ";
+			}elseif($tenderStatus == 3){
+			$tenderStatusVal = "Technical Evaluation";
+			}elseif($tenderStatus == 4){
+			$tenderStatusVal = "Financial Evaluation";
+			}elseif($tenderStatus == 5){
+			$tenderStatusVal = "Awarded";
+			}
+			elseif($tenderStatus == 6){
+			$tenderStatusVal = "Re. Auction";
+			}
+
+		}else{
+		if($tenderStatus == 0){
+			$tenderStatusVal = "Open";
+			}
+		}
+
+		if(isset($nodeData->field_tender_mode[$lang][0]['value'])){
+			$tenderModeVal = $nodeData->field_tender_mode[$lang][0]['value'];
+		}
+		if(!empty($tenderModeVal) && $tenderModeVal == 1){
+			$tenderMode = "Open";
+		}else{
+			$tenderMode = "Limited";
+		}
+		if(isset($nodeData->field_tender_last_sale_date[$lang][0]['value'])){
+			//$tenderlastSaleDate = $nodeData->field_tender_last_sale_date[$lang][0]['value'];
+				$tenderlastSaleDate  = date("d-M-Y", strtotime($nodeData->field_tender_last_sale_date[$lang][0]['value']));
+		}
+   
+// End Set All Tender Values in Variables
+	
+	if(isset($nodeData->field_tender_cancelled_collectio[$lang][0]['value']) && !empty($nodeData->field_tender_cancelled_collectio[$lang][0]['value']))
+	{
+		$tenderCancelleID  = $nodeData->field_tender_cancelled_collectio[$lang][0]['value'];
+		$entityCollection = entity_load('field_collection_item', array($tenderCancelleID));
+		$cancelledMessage = $entityCollection[$tenderCancelleID]->field_tender_cancelled_message[$lang][0]['value'];
+		//$cancelledDate = $entityCollection[$tenderCancelleID]->field_tender_cancelled_date[$lang][0]['value'];
+			if(isset($cancelledMessage)){
+			$cancelledDate = date("d-M-Y", strtotime($entityCollection[$tenderCancelleID]->field_tender_cancelled_date[$lang][0]['value']));
+		}
+	}
+// }
+ // for Tender CPQ Status
+// if(!empty($tenderStatus) && $tenderStatus ==2)
+// {
+	
+	if(isset($nodeData->field_tender_cpq_collection[$lang][0]['value']) && !empty($nodeData->field_tender_cpq_collection[$lang][0]['value']))
+	{ 
+		$tenderCPQId  = $nodeData->field_tender_cpq_collection[$lang][0]['value'];
+		
+		$entityCollectionCPQ = entity_load('field_collection_item', array($tenderCPQId));
+		$CPQTenderReceived = $entityCollectionCPQ[$tenderCPQId]->field_no_of_tender_received[$lang][0]['value'];
+		//$CPQDate = $entityCollectionCPQ[$tenderCPQId]->field_tender_cpq_date[$lang][0]['value'];
+		if(isset($CPQTenderReceived) || !empty($CPQTenderReceived)){
+			$CPQDate = date("d-M-Y", strtotime($entityCollectionCPQ[$tenderCPQId]->field_tender_cpq_date[$lang][0]['value']));
+			
+			
+	
+		}
+	}
+// }
+ // for Tender Technical Evaluation Status
+// if(!empty($tenderStatus) && $tenderStatus ==3)
+// {
+	if(isset($nodeData->field_technical_evaluation_colle[$lang][0]['value']) && !empty($nodeData->field_technical_evaluation_colle[$lang][0]['value']))
+	{
+		$tenderTechId  = $nodeData->field_technical_evaluation_colle[$lang][0]['value'];
+		$entityCollectionTech = entity_load('field_collection_item', array($tenderTechId));
+		$TechTenderNoParty = $entityCollectionTech[$tenderTechId]->field_no_of_parties_qualified_af[$lang][0]['value'];
+		$TechTenderNameParty = $entityCollectionTech[$tenderTechId]->field_name_of_parties_qualified[$lang][0]['value'];
+		$TechTenderNotPartyNo = $entityCollectionTech[$tenderTechId]->field_no_of_parties_not_qualifie[$lang][0]['value'];
+		$TechTenderNotPartyName = $entityCollectionTech[$tenderTechId]->field_name_of_parties_not_qualif[$lang][0]['value'];
+		//$TechDate = $entityCollectionTech[$tenderTechId]->field_technical_evaluation_date[$lang][0]['value'];
+			if(isset($$TechTenderNoParty) || isset($TechTenderNotPartyNo)){
+			$TechDate = date("d-M-Y", strtotime($entityCollectionTech[$tenderTechId]->field_technical_evaluation_date[$lang][0]['value']));
+	
+		}
+	}
+// }
+ // for Tender Financial Evaluation Status
+// if(!empty($tenderStatus) && $tenderStatus ==4)
+// {
+	if(isset($nodeData->field_finance_evaluation_collect[$lang][0]['value']) && !empty($nodeData->field_finance_evaluation_collect[$lang][0]['value']))
+	{
+	
+		$tenderFinanceId  = $nodeData->field_finance_evaluation_collect[$lang][0]['value'];
+		$entityCollectionFinance = entity_load('field_collection_item', array($tenderFinanceId));
+		$TenderNoPartyFinance = $entityCollectionFinance[$tenderFinanceId]->field_no_of_parties_finance_eval[$lang][0]['value'];
+		$TenderNamePartyFinance = $entityCollectionFinance[$tenderFinanceId]->field_name_of_parties_finance_ev[$lang][0]['value'];
+		if(isset($TenderNoPartyFinance) && isset($TenderNamePartyFinance)){
+			$FinanceDate = date("d-M-Y", strtotime($entityCollectionFinance[$tenderFinanceId]->field_finance_evaluation_date[$lang][0]['value']));
+	
+		}
+	
+	}
+	
+
+	echo "<div id='tender_popup'>
+	<div class='tender-name'>$tenderName</div>
+			<div class='col-md-4 pull-left'>
+			<div class='page-title'>";echo t("Tender Details"); echo "</div>
+			</div>
+			<div class='col-md-6  pull-left' >
+			<div class='page-title'>";echo t("Tender Status"); echo "</div>
+			</div>
+			<div class='clearfloat'></div> 
+			<div class='top_left  col-md-4'>
+			 
+			 
+			<div class='clearfloat'></div> 
+				<div class='field_label col-md-5  pull-left'><strong>";echo t("Region"); echo ":&nbsp;</strong></div>
+			<div class='field-items col-md-7  pull-left'> 
+						<div class='field-item even'>$tenderRegionName</div>
+			</div>
+			<div class='clearfloat'></div> 
+				<div class='field_label col-md-5  pull-left'><strong>";echo t("Airport"); echo " :&nbsp;</strong></div>
+			
+			
+			<div class='field-items col-md-7  pull-left'> 
+						<div class='field-item even'>$tenderAirName</div>
+			</div>
+			<div class='clearfloat'></div> 
+				<div class='field_label col-md-5 pull-left'><strong>";echo t("Department"); echo ":&nbsp;</strong></div>
+			
+			
+			<div class='field-items col-md-7  pull-left'> 
+						<div class='field-item even'>$tenderDeptName</div>
+			</div>
+			<div class='clearfloat'></div> 
+				<div class='field_label col-md-5  pull-left'><strong>";echo t("Estimate Cost"); echo " :&nbsp;</strong></div>
+			
+			<div class='field-items col-md-7  pull-left'> 
+						<div class='field-item even'>$tenderEstVAl $tenderCurrType</div>
+			</div>
+			<div class='clearfloat'></div> 
+
+			<div class='field_label col-md-12  pull-left'><strong>";echo t("Description"); echo " :&nbsp;</strong></div>
+			<div class='clearfloat'></div> 
+			
+			<div class='field-items  col-md-12  pull-left cancelled'>
+						<div class='field-item even'>$tenderDesc</div>
+			</div>
+						<div class='clearfloat'></div> 
+			
+			<div class='clearfloat'></div> 
+				<div class='field_label col-md-5  pull-left'><strong>";echo t("Tender E-Bid No"); 
+		echo " :&nbsp;</strong></div>
+				<div class='field-items col-md-7  pull-left'> 
+						<div class='field-item even'>$tenderEBidNo</div>
+			</div>
+			<div class='clearfloat'></div> 
+				<div class='field_label col-md-5  pull-left'><strong>";echo t("Tender Bid Type"); 
+		echo " :&nbsp;</strong></div>
+			<div class='field-items col-md-7  pull-left'> 
+						<div class='field-item even'>$tenderBidType</div>
+			</div>
+			<div class='clearfloat'></div> 
+				<div class='field_label col-md-5 pull-left'><strong>";echo t("Tender Status"); echo " :&nbsp;</strong></div>
+			<div class='field-items col-md-7 pull-left'> 
+						<div class='field-item even'>$tenderStatusVal</div>
+			</div>
+			<div class='clearfloat'></div> 
+			<div class='field_label col-md-5  pull-left'><strong>";echo t("Tender Mode"); echo " :&nbsp;</strong></div>
+			
+			<div class='field-items col-md-7  pull-left'> 
+						<div class='field-item even'>$tenderMode</div>
+			</div>
+			<div class='clearfloat'></div> 
+			<div class='field_label col-md-5  pull-left'><strong>";echo t("Tender Last Sale Date"); 
+		echo " :&nbsp;</strong></div>
+			<div class='field-items col-md-7  pull-left'> 
+						<div class='field-item even'>$tenderlastSaleDate</div>
+			</div>
+		</div>
+
+		<div class='top_right  col-md-8'>
+
+		<div class='panel col-md-12'>
+			<div class='field_label col-md-5  pull-left'><strong>";echo t("Tender Status"); echo ":&nbsp;</strong></div>
+			<div class='field-items col-md-7  pull-left'>
+			<div class='field-item even'><h3><strong>$tenderStatusVal</strong></h3></div>
+		</div>";
+
+		if($tenderStatus== 1 ){
+		echo "<div class='clearfloat'></div> 
+				<div class='field_label col-md-5  pull-left'><strong>";echo t("Reason for Cancelled");
+		echo " :&nbsp;</strong></div>
+				<div class='clearfloat'></div> 
+				<div class='field-items  col-md-5  pull-left cancelled'>
+					<div class='field-item even'>$cancelledMessage</div>
+				</div>
+				<div class='clearfloat'></div> 
+				<div class='field_label col-md-5  pull-left'><strong>";echo t("Cancelled Date"); 
+		echo "  :&nbsp;</strong></div>
+							<div class='field-items  col-md-7  pull-left'>
+									<div class='field-item even'>$cancelledDate</div>
+			  </div>";
+		}
+				
+		if(isset($CPQTenderReceived) || !empty($CPQTenderReceived)){
+
+					$CPQDate = date("d-M-Y", strtotime($entityCollectionCPQ[$tenderCPQId]->field_tender_cpq_date[$lang][0]['value'])); 
+						echo "</div>
+						<div class='panel col-md-12'>";
+						if($tenderStatusVal!='Open'){ 			
+						echo "<div class='field_label col-md-5  pull-left'><strong>";echo t("No of Tender Received"); echo ":&nbsp;</strong></div>
+						
+						<div class='field-items  col-md-7  pull-left'>
+									<div class='field-item even'>$CPQTenderReceived</div>
+						</div>
+						<div class='clearfloat'></div>
+						<div class='field_label col-md-5  pull-left'><strong>";echo t("PQQ Date"); echo " :&nbsp;</strong></div>
+						<div class='field-items  col-md-7  pull-left'>
+									<div class='field-item even'>$CPQDate</div>
+						</div>";
+						}
+			echo "</div>";
+		}
+		if(isset($TechTenderNoParty) && !empty($TechTenderNoParty)){
+					echo "<div class='panel col-md-12'>			
+					<div class='clearfloat'></div> 
+					<div class='field_label col-md-5 pull-left'><strong>";echo t("Number of bidders Qualified for Technical Evaluation"); echo " :&nbsp;</strong></div>
+					<div class='field-items  col-md-7  pull-left'>
+								<div class='field-item even'>$TechTenderNoParty</div>
+					</div>
+					<div class='clearfloat'></div> 
+					<div class='field_label col-md-5  pull-left'><strong>";echo t("Name Of bidders Qualified for Technical Evaluation"); echo " :&nbsp;</strong></div>
+					<div class='field-items  col-md-7  pull-left'>
+								<div class='field-item even'>$TechTenderNameParty</div>
+					</div>
+								<div class='clearfloat'></div> 
+
+								<div class='field_label col-md-5  pull-left'><strong>";echo t("No Of bidders Not Qualmdfied for Technical Evaluation"); echo " :&nbsp;</strong></div>
+					<div class='field-items  col-md-7  pull-left'>
+								<div class='field-item even'>$TechTenderNotPartyNo</div>
+					</div>
+								<div class='clearfloat'></div> 
+
+								<div class='field_label col-md-5 pull-left'><strong>";echo t("Name Of bidders Not Qualified for Technical Evaluation"); echo " :&nbsp;</strong></div>
+					<div class='field-items  col-md-7  pull-left'>
+								<div class='field-item even'>$TechTenderNotPartyName</div>
+					</div>
+								<div class='clearfloat'></div> 
+
+					<div class='field_label col-md-5 pull-left'><strong>";echo t("Technical Evaluation Date");
+			 echo " :&nbsp;</strong></div>
+					
+				<div class='field-items  col-md-7  pull-left'>
+								<div class='field-item even'>$TechDate</div>
+					</div>
+					
+				</div>";
+		}
+
+		if(isset($TenderNoPartyFinance) && !empty($TenderNoPartyFinance)){
+					echo "<div class='panel col-md-12'>			
+								<div class='clearfloat'></div> 
+
+					<div class='field_label col-md-5 pull-left'><strong>";echo t("No Of bidders Qualified for Financial Evaluation"); echo " :&nbsp;</strong></div>
+					
+					
+					<div class='field-items  col-md-7 pull-left'>
+								<div class='field-item even'>$TenderNoPartyFinance</div>
+					</div>
+								<div class='clearfloat'></div> 
+
+					<div class='field_label col-md-5 pull-left'><strong>";echo t("Name Of bidders Qualified for Financial Evaluation"); echo " :&nbsp;</strong></div>
+					
+					
+					<div class='field-items  col-md-7 pull-left'>
+								<div class='field-item even'>$TenderNamePartyFinance</div>
+					</div>
+					
+									<div class='clearfloat'></div> 
+
+					<div class='field_label col-md-5 pull-left'><strong>";echo t("Financial Evaluation Date"); echo " :&nbsp;</strong></div>
+					
+					
+					<div class='field-items  col-md-7 pull-left'>
+								<div class='field-item even'>$FinanceDate</div>
+					</div>
+				</div>";
+		}
+
+
+		// for Tender Awarded Status
+
+		if(!empty($tenderStatus) && $tenderStatus ==5)
+		{
+			if(isset($nodeData->field_tender_awarded[$lang]))
+			{
+				foreach($nodeData->field_tender_awarded[$lang] as $tenderKey=>$tenderValue)
+				{
+					if(isset($tenderValue['value']) && !empty($tenderValue['value']))
+					{
+						$tenderAwardedId  = $tenderValue['value'];
+						$entityCollectionAwarded = entity_load('field_collection_item', array($tenderAwardedId));
+						
+						$awardedContNo = $entityCollectionAwarded[$tenderAwardedId]->field_contact_number[$lang][0]['value'];
+						//$awardedDate = $entityCollectionAwarded[$tenderAwardedId]->field_date_of_award[$lang][0]['value'];
+							$awardedDate = date("d-M-Y", strtotime($entityCollectionAwarded[$tenderAwardedId]->field_date_of_award[$lang][0]['value']));
+						$awardedNameContract = $entityCollectionAwarded[$tenderAwardedId]->field_name_of_contractor[$lang][0]['value'];
+						$awardedValueContract = $entityCollectionAwarded[$tenderAwardedId]->field_value_of_contractor[$lang][0]['value'];
+						
+					//	$awardedScheduleCompletion = $entityCollectionAwarded[$tenderAwardedId]->field_schedule_completion_of_sup[$lang][0]['value'];
+						$awardedScheduleCompletion = date("d-M-Y", strtotime($entityCollectionAwarded[$tenderAwardedId]->field_schedule_completion_of_sup[$lang][0]['value']));
+						$awardedRemark = $entityCollectionAwarded[$tenderAwardedId]->field_remark[$lang][0]['value'];
+						
+						if(isset($awardedContNo) && !empty($awardedContNo)){
+						echo "<div class='panel col-md-12'>			
+						<div class='field_label col-md-5 pull-left'><strong>";echo t("Contract Number"); echo " :&nbsp;</strong></div>
+								<div class='field-items  col-md-7 pull-left'>
+											<div class='field-item even'>$awardedContNo</div>
+								</div>
+								<div class='clearfloat'></div> 
+									<div class='field_label col-md-5 pull-left'><strong>";echo t("Date of Award"); echo " :&nbsp;</strong></div>
+								<div class='field-items  col-md-7 pull-left'>
+											<div class='field-item even'>$awardedDate</div>
+								</div>
+								
+									<div class='clearfloat'></div> 
+									<div class='field_label col-md-5 pull-left'><strong>";echo t("Name of Contractor"); echo " :&nbsp;</strong></div>
+								
+								
+								<div class='field-items  col-md-7 pull-left'>
+											<div class='field-item even'>$awardedNameContract</div>
+								</div>
+								<div class='clearfloat'></div> 
+										<div class='field_label col-md-5 pull-left'><strong>";echo t("Value of Contractor"); echo " :&nbsp;</strong></div>
+								
+								
+								<div class='field-items  col-md-7 pull-left'>
+											<div class='field-item even'>$awardedValueContract</div>
+								</div>
+								<div class='clearfloat'></div> 
+										<div class='field_label col-md-5 pull-left'><strong>";echo t("Schedule completions of"); echo " :&nbsp;</strong></div>
+								
+								
+								<div class='field-items  col-md-7 pull-left'>
+											<div class='field-item even'>$awardedScheduleCompletion</div>
+								</div>
+								<div class='clearfloat'></div> 
+							<div class='remarks'>	
+										<div class='field_label col-md-5 pull-left'><strong>";echo t("Remarks"); echo " :&nbsp;</strong></div>
+								
+								
+								<div class='field-items  col-md-7 pull-left'>
+											<div class='field-item even'>$awardedRemark</div>
+								</div>
+								<div class='clearfloat'></div> 
+								</div></div> ";
+						}
+					
+					}
+				}
+			}
+		}
+
+		/* Tender Reverce Auction */
+
+
+		if(!empty($tenderStatus) && $tenderStatus ==6)
+		{
+			if(isset($nodeData->field_tender_reverse_auction_col[$lang]))
+			{
+				foreach($nodeData->field_tender_reverse_auction_col[$lang] as $reverceauctionKey=>$reverceauctionValue)
+				{
+					if(isset($reverceauctionValue['value']) && !empty($reverceauctionValue['value']))
+					{
+						$reverceauctionId  = $reverceauctionValue['value'];
+						$entityCollectionReverseAuction = entity_load('field_collection_item', array($reverceauctionId));
+						
+						$reverceauctionqualifiedPartyno = $entityCollectionReverseAuction[$reverceauctionId]->field_number_of_bidders_qualifie[$lang][0]['value'];
+						
+						$reverceauctiondate = date("d-M-Y", strtotime($entityCollectionReverseAuction[$reverceauctionId]->field_date_of_reverse_auction_[$lang][0]['value']));
+						$reverceauctionPartyparticipate = $entityCollectionReverseAuction[$reverceauctionId]->field_number_of_bidders_particip[$lang][0]['value'];
+						$reverceauctionprices = $entityCollectionReverseAuction[$reverceauctionId]->field_prices_offered_by_the_bidd[$lang][0]['value'];
+						
+						if(isset($reverceauctionqualifiedPartyno) && !empty($reverceauctionqualifiedPartyno)){
+						echo "<div class='panel col-md-12'>			
+						<div class='field_label col-md-5 pull-left'><strong>";echo t("Number of bidders qualified for  reverse auction"); echo " :&nbsp;</strong></div>
+					
+					
+								<div class='field-items  col-md-7 pull-left'>
+											<div class='field-item even'>$reverceauctionqualifiedPartyno</div>
+								</div>
+								<div class='clearfloat'></div> 
+									<div class='field_label col-md-5 pull-left'><strong>";echo t("Date of Reverse Auction"); echo "  :&nbsp;</strong></div>
+								
+								
+								<div class='field-items  col-md-7 pull-left'>
+											<div class='field-item even'>$reverceauctiondate</div>
+								</div>
+								
+									<div class='clearfloat'></div> 
+									<div class='field_label col-md-5 pull-left'><strong>";echo t("Number of bidders participated in reverse auction"); echo " :&nbsp;</strong></div>
+								
+								
+								<div class='field-items  col-md-7 pull-left'>
+											<div class='field-item even'>$reverceauctionPartyparticipate</div>
+								</div>
+								<div class='clearfloat'></div> 
+										<div class='field_label col-md-5 pull-left'><strong>";echo t(" Prices offered by the Bidders at the time of Reverse Auction"); echo " :&nbsp;</strong></div>
+								
+								
+								<div class='field-items  col-md-7 pull-left'>
+											<div class='field-item even'>$reverceauctionprices</div>
+								</div>
+								
+								<div class='clearfloat'></div> 
+								</div></div> ";
+						}
+					
+					}
+				}
+			}
+		}
+/* Reverse Auction Ends Here*/
+		echo "	</div></div></div><!-- Tender Popup ID -->";
+
+	exit;
+	}
+
+function tenders_form_alter(&$form, $form_state, $form_id) {
+  $functions = AAI::getInstance();
+  $lang = $functions->aaiCurrentLang();
+
+  if ($form_id == 'tender_node_form') {
+  	//drupal_add_js(drupal_get_path('module', 'tenders') . '/tender.js');
+  	$action = arg(1);
+	$moduleName = arg(2);
+	if($action == 'add' && $moduleName =='tender') {
+		$form['field_is_corrigendum']['#access'] = FALSE;
+		$form['field_corrigendum_details']['#access'] = FALSE;
+		unset($form['field_tender_status'][$lang]['#options'][1]);
+		unset($form['field_tender_status'][$lang]['#options'][2]);
+		unset($form['field_tender_status'][$lang]['#options'][3]);
+		unset($form['field_tender_status'][$lang]['#options'][4]);
+		unset($form['field_tender_status'][$lang]['#options'][5]);
+		unset($form['field_tender_status'][$lang]['#options']['_none']);
+	  }
+	  
+	  if(arg(0)=='node' && is_numeric(arg(1)) && $moduleName =='edit'){
+		 
+	  	$node_id= arg(1);
+	  	$node_details = node_load($node_id);
+	  	global $language_url;
+	  	global $base_url;
+	  	if($node_details->language != $language_url->language){
+	  		unset($_GET['destination']);
+	  		drupal_goto($base_url."/".$node_details->language."/node/".$node_id."/edit");
+	  	}
+	  	
+	 	$tenderStatus =  $form['#node']->field_tender_status[$lang][0]['value'];
+		//$form['field_tender_status'][$lang]['#options'][1] = False;
+		unset($form['field_tender_status'][$lang]['#options']['_none']);
+		if($tenderStatus == 0){
+			unset($form['field_tender_status'][$lang]['#options'][3]);
+			unset($form['field_tender_status'][$lang]['#options'][4]);
+			unset($form['field_tender_status'][$lang]['#options'][5]);
+		}elseif($tenderStatus == 1){
+			unset($form['field_tender_status'][$lang]['#options'][0]);
+			unset($form['field_tender_status'][$lang]['#options'][2]);
+			unset($form['field_tender_status'][$lang]['#options'][3]);
+			unset($form['field_tender_status'][$lang]['#options'][4]);
+			unset($form['field_tender_status'][$lang]['#options'][5]);
+		}elseif($tenderStatus == 2){
+			unset($form['field_tender_status'][$lang]['#options'][0]);
+			unset($form['field_tender_status'][$lang]['#options'][4]);
+			unset($form['field_tender_status'][$lang]['#options'][5]);
+		}elseif($tenderStatus == 3){
+			unset($form['field_tender_status'][$lang]['#options'][0]);
+			unset($form['field_tender_status'][$lang]['#options'][2]);
+			unset($form['field_tender_status'][$lang]['#options'][5]);
+		}elseif($tenderStatus == 4){
+			unset($form['field_tender_status'][$lang]['#options'][0]);
+			unset($form['field_tender_status'][$lang]['#options'][2]);
+			unset($form['field_tender_status'][$lang]['#options'][3]);
+		}elseif($tenderStatus == 5){
+			unset($form['field_tender_status'][$lang]['#options'][0]);
+			unset($form['field_tender_status'][$lang]['#options'][1]);
+			unset($form['field_tender_status'][$lang]['#options'][2]);
+			unset($form['field_tender_status'][$lang]['#options'][3]);
+			unset($form['field_tender_status'][$lang]['#options'][4]);
+			unset($form['field_tender_status'][$lang]['#options'][6]);
+		}
+		elseif($tenderStatus == 6){
+			unset($form['field_tender_status'][$lang]['#options'][0]);
+			unset($form['field_tender_status'][$lang]['#options'][2]);
+			unset($form['field_tender_status'][$lang]['#options'][3]);
+			unset($form['field_tender_status'][$lang]['#options'][4]);
+			unset($form['field_tender_status'][$lang]['#options'][1]);
+		
+			
+		}
+		
+		//End validate tender selection status 	
+
+
+		// Disable Tender Fields on edit functionality
+		
+		$form['field_region'][$lang]['#attributes']['disabled'] = TRUE;
+		$form['field_tender_estimate_cost'][$lang][0]['value']['#attributes']['disabled'] = TRUE;
+		$form['field_airport'][$lang]['#attributes']['disabled'] = TRUE;
+		$form['field_department'][$lang]['#attributes']['disabled'] = TRUE;
+		$form['field_csr_policy_titles'][$lang][0]['value']['#attributes']['disabled'] = TRUE;
+		$form['field_tender_e_bid_no'][$lang][0]['value']['#attributes']['disabled'] = TRUE;
+		$form['field_tender_bid_type'][$lang]['#attributes']['disabled'] = TRUE;
+		$form['field_tender_mode'][$lang]['#attributes']['disabled'] = TRUE;
+		//$form['field_tender_last_sale_date']['#disabled'] = TRUE;
+		//$form['field_sale_of_tender']['#disabled'] = TRUE;
+		$form['field_e_tender']['#disabled'] = TRUE;
+		$form['field_upload_document']['#disabled'] = TRUE;
+		//$form['field_opening_of_tender']['#disabled'] = TRUE;
+		if(isset($form['field_tender_e_bid_no'][$lang][0]['value'])){
+			//$form['field_tender_last_sale_date'][$lang]['#disabled'] = TRUE;
+		}
+		//Hide cancelled field collection
+		$cancelCollVal = '';
+		if(count($form['#node']->field_tender_cancelled_collectio) > 0 && !empty($form['#node']->field_tender_cancelled_collectio[$lang][0]['value'])){
+			$cancelCollVal = $form['#node']->field_tender_cancelled_collectio[$lang][0]['value'];
+		}
+		if(isset($cancelCollVal) && !empty($cancelCollVal))
+		{
+		$tenderCancelleID  = $cancelCollVal;
+		$entityCollection = entity_load('field_collection_item', array($tenderCancelleID));
+			if(count($entityCollection[$tenderCancelleID]->field_tender_cancelled_message) > 0){
+				$cancelledMessage = $entityCollection[$tenderCancelleID]->field_tender_cancelled_message[$lang][0]['value'];
+					if(isset($cancelledMessage)){	
+					$form['field_tender_cancelled_collectio'][$lang][0]['#disabled'] = TRUE;
+					}
+			}
+		}
+	
+	//Hide CPQ field collection
+		
+		$CpqCollVal = '';
+		if(count($form['#node']->field_tender_cpq_collection) > 0 && !empty($form['#node']->field_tender_cpq_collection[$lang][0]['value'])){
+			$CpqCollVal = $form['#node']->field_tender_cpq_collection[$lang][0]['value'];
+		}
+		
+		if(isset($CpqCollVal) && !empty($CpqCollVal))
+		{ 
+			$tenderCPQID  = $CpqCollVal;
+			$entityCollection = entity_load('field_collection_item', array($tenderCPQID));
+			if(count($entityCollection[$tenderCPQID]->field_no_of_tender_received) > 0)
+			{
+				$noOfTenderVal = $entityCollection[$tenderCPQID]->field_no_of_tender_received[$lang][0]['value'];
+					if(isset($noOfTenderVal))
+					{
+							if(isset($noOfTenderVal) && !empty($noOfTenderVal)){
+								//$form['field_tender_cpq_collection'][$lang][0]['#disabled'] = TRUE; 
+					}
+				}
+			}
+		}
+	
+	//Hide Technical Evaluation field collection
+		
+	
+		$TechCollVal = '';
+		if(count($form['#node']->field_technical_evaluation_colle) > 0 && !empty($form['#node']->field_technical_evaluation_colle[$lang][0]['value'])){
+			$TechCollVal = $form['#node']->field_technical_evaluation_colle[$lang][0]['value'];
+		}
+		
+		if(isset($TechCollVal) && !empty($TechCollVal))
+		{
+		$tenderTechID  = $TechCollVal;
+		$entityCollection = entity_load('field_collection_item', array($tenderTechID));
+		
+	
+		if(count($entityCollection[$tenderTechID]->field_no_of_parties_qualified_af) > 0){
+		
+		$noOfPartyVal = $entityCollection[$tenderTechID]->field_no_of_parties_qualified_af[$lang][0]['value'];
+		if(isset($noOfPartyVal)){
+				if(isset($noOfPartyVal) && !empty($noOfPartyVal)){
+					//$form['field_technical_evaluation_colle'][$lang][0]['#disabled'] = TRUE; 
+			}
+		}
+		}
+	}
+		
+		//Hide Financial Evaluation field collection
+		
+		$FinanceCollVal = '';
+		if(count($form['#node']->field_finance_evaluation_collect) > 0 && !empty($form['#node']->field_finance_evaluation_collect[$lang][0]['value'])){
+			$FinanceCollVal = $form['#node']->field_finance_evaluation_collect[$lang][0]['value'];
+		}
+		if(isset($FinanceCollVal) && !empty($FinanceCollVal))
+		{
+			$tenderFinanceID  = $FinanceCollVal;
+			$entityCollection = entity_load('field_collection_item', array($tenderFinanceID));
+		
+			if(count($entityCollection[$tenderFinanceID]->field_no_of_parties_finance_eval) > 0){
+			
+				$noOfPartyVal = $entityCollection[$tenderFinanceID]->field_no_of_parties_finance_eval[$lang][0]['value'];
+				if(isset($noOfPartyVal)){
+						if(isset($noOfPartyVal) && !empty($noOfPartyVal)){
+							//$form['field_finance_evaluation_collect'][$lang][0]['#disabled'] = TRUE; 
+						}
+				}
+			}
+		}
+	
+	//Hide Financial Evaluation field collection
+
+			$tenderCollVal = '';
+		if(count($form['#node']->field_tender_awarded) > 0 && !empty($form['#node']->field_tender_awarded[$lang][0]['value'])){
+			$tenderCollVal = $form['#node']->field_tender_awarded[$lang][0]['value'];
+		}
+		if(isset($tenderCollVal) && !empty($tenderCollVal))
+		{
+		$tenderAwardID  = $tenderCollVal;
+		$entityCollection = entity_load('field_collection_item', array($tenderAwardID));
+		
+			if(count($entityCollection[$tenderAwardID]->field_contact_number) > 0){
+			
+			$noOfPartyVal = $entityCollection[$tenderAwardID]->field_contact_number[$lang][0]['value'];
+				if(isset($noOfPartyVal)){
+						if(isset($noOfPartyVal) && !empty($noOfPartyVal)){
+								//$form['field_tender_awarded'][$lang][0]['#disabled'] = TRUE; 
+						}
+				}
+			}
+		}
+		
+		$corrigenArr = $form['#node']->field_corrigendum_details[$lang];
+		if(count($corrigenArr) >0){
+			foreach($corrigenArr as $corrignKey=>$corrignVal){
+				//$form['field_corrigendum_details'][$lang][$corrignKey]['#disabled'] = TRUE;
+				
+			}
+				//$form['field_corrigendum_details'][$lang]['add_more']['#disabled'] = TRUE; 
+		}
+		
+	  }
+  
+  } 
+}
+
+/**
+* Implements hook_preprocess_views_view().
+*/
+function tenders_preprocess_views_view(&$vars) {	
+	 $module_path = drupal_get_path('module', 'chosen');
+     // Assign to your specific view.      
+       	    if($vars['view']->name ==='infosarthi_page' && !empty(arg(1))){
+				   $vars['exposed'] = "<div class='full_content'>
+								<div class='collapsed_row' onclick='javascript:toggle_view_filters(this);'>".t('Search Filters')." </div>
+									<div class='expands_data'>" . $vars['exposed'] . "</div>
+							</div>";
+			}
+			if ($vars['view']->name === 'resources'|| $vars['view']->name === 'tender' ){				
+			    $vars['exposed'] = "<div class='full_content'>
+				<div class='collapsed_row' onclick='javascript:toggle_view_filters(this);'>Search Filters</div>
+					<div class='expands_data'>" . $vars['exposed'] . "</div>
+				</div>";
+			}
+			if ($vars['view']->name === 'infosarthi_blocks' ){				
+				// page_2 
+				 if($vars['view']->current_display == 'page_2' || $vars['view']->current_display == 'page_1' || $vars['view']->current_display == 'page_3') {
+			    $vars['exposed'] = "<div class='full_content'>
+				<div class='collapsed_row' onclick='javascript:toggle_view_filters(this);'>Search Filters</div>
+					<div class='expands_data'>" . $vars['exposed'] . "</div>
+				</div>";
+				}
+			}
+}
+
+/**
+* Implements hook_node_insert().
+*/
+function tenders_node_insert($node) {
+  if($node->type == 'tender') {
+    // folder name structure Start
+    $folder_name = date("Ymd");
+    $folder_path = 'public://tender/tender_xml/'.$folder_name;
+
+    // check if required folder exists, if not create one.
+    $folder_exists = 1;
+    if (!file_exists($folder_path)) {
+      $folder_created = drupal_mkdir($folder_path, 0775);
+      if (!$folder_created) {
+      	$folder_exists = 0;
+      	drupal_set_message(t('System cannot generate required folder, set the permissions right for folder creation.'));
+      }
+    }
+
+    if ($folder_exists) {
+      $tendername = $folder_name.$node->nid;
+      $xml_file_name = $tendername.".xml";
+      $file_path = $folder_path . '/' . $xml_file_name;
+
+      // folder name structure End
+      $functions = AAI::getInstance();
+      $xml_content = $functions->aaiGenerateTenderXML($node,$tendername);     
+      $file = file_save_data($xml_content, $file_path, FILE_EXISTS_REPLACE);	 
+      if (is_object($file)) { 
+	    $file->status = 1;
+        $file = file_save($file);
+	  } else {
+        drupal_set_message('There is problem generating Tender XML, please try again');
+	  }
+    }
+  }
+}
+
+
+/*
+ * Implements fetch_previous_tender() function to fetch previous Tenders..
+ */
+
+function fetch_previous_tender(){
+  $files = glob("sites/all/modules/custom/tenders/xmls/*xml");
+  $last_inserted_tender_id = variable_get('pre_tender_value');
+  $i=0;
+    foreach($files as $filename) {
+      $file_divide = explode('/', $filename);
+	  $file_counter = explode('_', $file_divide['6']);
+	  $seriol_no_file_divide = explode('.', $file_counter['1']);
+	  $seriol_no_file = $seriol_no_file_divide[0];
+		if($seriol_no_file > $last_inserted_tender_id){
+	      $i++;
+		  $xml_file = file_get_contents($filename, FILE_TEXT);
+		  $xml =      simplexml_load_string($xml_file);
+		  $node = new stdClass();
+		  $node->type = "previous_tender";
+	      $node->language = LANGUAGE_NONE;
+		  $node->title = $xml->tender->name;
+		  $node->field_pre_tender_department['und'][0]['value'] = $xml->tender->department;
+		  $node->field_pre_tender_region['und'][0]['value'] = $xml->tender->region;
+		  $node->field_pre_tender_airport['und'][0]['value'] = $xml->tender->airport;
+		  $node->field_pre_tender_estimated_cost['und'][0]['value'] = $xml->tender->estimate_cost;
+		  $node->field_pre_tender_last_date_sale[LANGUAGE_NONE][0] = array('value' => date('Y-m-d' ,strtotime($xml->tender->last_sale_date)),
+		  	  'timezone' => 'UTC',
+		  	  'timezone_db' => 'UTC');
+		  $node->field_pre_tender_document_name['und'][0]['value'] = $xml->tender->document_name;
+		  $node->field_pre_tender_corrign1_name['und'][0]['value'] = $xml->tender->corrigendum_1;
+		  $node->field_pre_tender_corrigen_2_name['und'][0]['value'] = $xml->tender->corrigendum_2;
+		  $node->field_corrigen_3_name['und'][0]['value'] = $xml->tender->corrigendum_3;
+		  $node->uid = 1;
+		  // file field entry 
+		  $documentname = $xml->tender->document_name;
+		  $corrigen1name = $xml->tender->corrigendum_1;
+		  $corrigen2name =$xml->tender->corrigendum_2;
+		  $corrigen3name = $xml->tender->corrigendum_3;
+			// document file save
+		  if(isset($documentname)){
+		    $path = 'sites/default/files/tender/tender/'.$documentname;
+	 		//out($path);
+			$file_temp = file_get_contents($path);
+			//out($file_temp);
+			$file_temp = file_save_data($file_temp, 'public://tender/tender/' . $documentname, FILE_EXISTS_REPLACE);
+			$node->field_pre_tender_document_file = array(
+		      'und' => array(
+			     0 => array(
+				   'fid' => $file_temp->fid,
+				   'filename' => $file_temp->filename,
+				   'filemime' => $file_temp->filemime,
+				   'uid' => 1,
+				   'uri' => $file_temp->uri,
+	       	   	   'status' => 1,
+				   'display' => '1',
+				   'description'=> ''
+				   )
+			    )
+			);
+		  }
+			//corrigen 1 file save
+		  if($corrigen1name != ''){
+				$pathcorrigen1name = 'sites/default/files/tender/corrigen/'.$corrigen1name;
+	 			//out($path);
+				$file_tempcorrigen1name = file_get_contents($pathcorrigen1name);
+				//out($file_temp);
+				$file_tempcorrigen1name = file_save_data($file_tempcorrigen1name, 'public://tender/corrigen/' . $corrigen1name, FILE_EXISTS_REPLACE);
+
+				$node->field_pre_tender_corrign_file1 = array(
+				   'und' => array(
+				        0 => array(
+					        'fid' => $file_tempcorrigen1name->fid,
+					        'filename' => $file_tempcorrigen1name->filename,
+					        'filemime' => $file_tempcorrigen1name->filemime,
+					        'uid' => 1,
+					        'uri' => $file_tempcorrigen1name->uri,
+					   	    'status' => 1,
+					   	    'display' => '1',
+					   	    'description'=> ''
+
+				    	)
+					)
+				);
+			}
+			// corrigen 2 file save
+			if($corrigen2name != ''){
+				$pathcorrigen2name = 'sites/default/files/tender/corrigen/'.$corrigen2name;
+	 			//out($path);
+				$file_tempcorrigen2name = file_get_contents($pathcorrigen2name);
+				//out($file_temp);
+				$file_tempcorrigen2name = file_save_data($file_tempcorrigen2name, 'public://tender/corrigen/' . $corrigen2name, FILE_EXISTS_REPLACE);
+
+				$node->field_pre_tender_corrigen_2_file = array(
+				   'und' => array(
+				        0 => array(
+					        'fid' => $file_tempcorrigen2name->fid,
+					        'filename' => $file_tempcorrigen2name->filename,
+					        'filemime' => $file_tempcorrigen2name->filemime,
+					        'uid' => 1,
+					        'uri' => $file_tempcorrigen2name->uri,
+					   	    'status' => 1,
+					   	    'display' => '1',
+					   	    'description'=> ''
+
+				    	)
+					)
+				);
+			}
+			//corrigen 3 file save
+			if($corrigen3name != ''){
+				$pathcorrigen3name = 'sites/default/files/tender/corrigen/'.$corrigen3name;
+	 			$file_tempcorrigen3name = file_get_contents($pathcorrigen3name);
+				$file_tempcorrigen3name = file_save_data($file_tempcorrigen3name, 'public://tender/corrigen/' . $corrigen3name, FILE_EXISTS_REPLACE);
+				$node->field_pre_tender_corrigen_3_file = array(
+				   'und' => array(
+				        0 => array(
+					        'fid' => $file_tempcorrigen3name->fid,
+					        'filename' => $file_tempcorrigen3name->filename,
+					        'filemime' => $file_tempcorrigen3name->filemime,
+					        'uid' => 1,
+					        'uri' => $file_tempcorrigen3name->uri,
+					   	    'status' => 1,
+					   	    'display' => '1',
+					   	    'description'=> ''
+
+				    	)
+					)
+				);
+			}
+			node_save($node);
+			$final_serial_no = $last_inserted_tender_id+$i;
+			variable_set('pre_tender_value',$final_serial_no);
+		}
+	}
+}
+
+/*
+ * Implements fetch_previous_tender() function to fetch previous Tenders..
+ */
+
+function fetch_previous_awarded_tender(){
+  $files = glob("sites/all/modules/custom/tenders/xmls/awarded/*xml");
+  $last_inserted_awarded_tender_id = variable_get('pre_awarded_tender_value');
+  $i=0;
+    foreach($files as $filename) {
+    	
+      $file_divide = explode('/', $filename);
+	  $file_counter = explode('_', $file_divide['7']);
+	  $seriol_no_file_divide = explode('.', $file_counter['1']);
+	  $seriol_no_file = $seriol_no_file_divide[0];
+
+		if($seriol_no_file > $last_inserted_awarded_tender_id){
+	      $i++;
+		  $xml_file = file_get_contents($filename, FILE_TEXT);
+		  $xml =      simplexml_load_string($xml_file);
+		  $node = new stdClass();
+		  $node->type = "previous_tender_awarded";
+	      $node->language = LANGUAGE_NONE;
+		  $node->field_prea_awd_tender_no['und'][0]['value']  = $xml->tender->tender_no;
+		  $node->field_pre_awd_tender_location['und'][0]['value'] = $xml->tender->location;
+		  $node->field_pre_awd_tender_department['und'][0]['value'] = $xml->tender->department;
+		  $node->title = $xml->tender->nature_of_work;
+		  $node->field_awd_mode_of_tender_enquary['und'][0]['value'] = $xml->tender->mode_of_tender_enquiry;
+
+		  $node->field_awd_publish_date_on_nit[LANGUAGE_NONE][0] = array('value' => date('Y-m-d' ,strtotime($xml->tender->date_of_publish_on_nit)),
+		  	  'timezone' => 'UTC',
+		  	  'timezone_db' => 'UTC');
+
+		  $node->field_awd_type_of_bidding_system['und'][0]['value'] = $xml->tender->type_of_bidding_system;
+		  $node->field_last_date_of_receipt_of_te[LANGUAGE_NONE][0] = array('value' => date('Y-m-d' ,strtotime($xml->tender->last_date_of_receipt_of_tender)),
+		  	  'timezone' => 'UTC',
+		  	  'timezone_db' => 'UTC');
+		  $node->field_awd_no_of_tender_received['und'][0]['value'] = $xml->tender->no_of_tender_received;
+		  $node->field_awd_of_parties_not_qualif['und'][0]['value'] = $xml->tender->name_of_parties_not_qualified_after_tech_evaluation;
+		  $node->field_name_of_parties_qualified_['und'][0]['value'] = $xml->tender->name_of_parties_qualified_after_tech_evaluation;
+		  $node->field_whether_tender_awarded_to_['und'][0]['value'] = $xml->tender->whether_tender_awarded_to_lowest_eval;
+		  $node->field_awd_contract_no['und'][0]['value'] = $xml->tender->contract_no;
+		  $node->field_pre_awd_name_of_contractor['und'][0]['value'] = $xml->tender->name_of_contractor;
+		  $node->field_pre_awd_date_of_award[LANGUAGE_NONE][0] = array('value' => date('Y-m-d' ,strtotime($xml->tender->date_of_award)),
+		  	  'timezone' => 'UTC',
+		  	  'timezone_db' => 'UTC');
+		  $node->field_pre_awd_value_of_contract['und'][0]['value'] = $xml->tender->value_of_contract;
+		  $node->field_scheduled_completion_of_su[LANGUAGE_NONE][0] = array('value' => date('Y-m-d' ,strtotime($xml->tender->scheduled_completion_of_supplies)),
+		  	  'timezone' => 'UTC',
+		  	  'timezone_db' => 'UTC'); 
+		  $node->field_pre_awd_tender_remarks['und'][0]['value'] = $xml->tender->remarks;
+		  $node->uid = 1;
+		  
+		  node_save($node);
+	      $final_serial_no = $last_inserted_awarded_tender_id+$i;
+		  variable_set('pre_awarded_tender_value',$final_serial_no);
+		}
+	}
+}
+/* implement function for previous tender variable set */
+function settenderid(){
+	variable_set('pre_tender_value',0);
+}
+
+
+
+/* implement function for previous awarded tender variable set */
+function awarded_settenderid(){
+	variable_set('pre_awarded_tender_value',0);
+}
+
+
+/*
+ * Implements fetch_circular_data() function to fetch Employee Circular Data..
+ */
+
+function fetch_circular_data(){
+
+  $files = glob("xls/*xls");
+
+ include('sites/all/libraries/PHPExcel/Classes/PHPExcel.php');
+ include('sites/all/libraries/PHPExcel/Classes/PHPExcel/IOFactory.php');
+
+ //$filenames = 'xls/aai_employees.xls';
+//echo $base_url;die;
+ 
+    foreach($files as $filename) {
+		$col++;
+		$row++;
+    	$xls_reader = PHPExcel_IOFactory::createReaderForFile($filename);
+        $xls_reader->setReadDataOnly(true);
+    	$objExcel = $xls_reader->load($filename);
+    	$sheet = $objExcel->getSheet(0);
+    	$highestRow = $sheet->getHighestRow();
+    	$highestColumn = $sheet->getHighestColumn();
+    	$heighestColumnIndex = PHPExcel_Cell::columnIndexFromString($highestColumn);
+        
+       for($row=1; $row <= $highestRow; $row++){
+       	 $rowData = $sheet->rangeToArray('A'. $row.':'.$highestColumn.$row,NULL,True,False);
+       	 $title = $rowData[0][0];
+       	 $pdf = $rowData[0][1];
+       	 $category = $rowData[0][2];
+       	 $term = taxonomy_get_term_by_name($category);
+       	 foreach($term as $key=>$tid){
+       	 	$newtid= $key;
+       	 }
+       	 
+       	  $node = new stdClass();
+		  $node->type = "infosarthi_circular";
+	      $node->language = LANGUAGE_NONE;
+		  $node->title = $title;
+		  if(isset($term)){
+		 	 $node->field_circular_type['und'][0]['tid'] = $newtid;
+		  }
+		  $node->field_info_document_date[LANGUAGE_NONE][0] = array('value' => date('Y-m-d' ,strtotime('01/01/2016')),
+		  	  'timezone' => 'UTC',
+		  	  'timezone_db' => 'UTC');
+		  $node->uid = 1;
+		  
+		  /* Pdf Save Start For Circular*/
+		  $pdfname = 'sites/default/files/infosarthi_files/circular/'.$pdf;
+	 			$file_pdfname = file_get_contents($pdfname);
+				$file_pdfname = file_save_data($file_pdfname, 'public://infosarthi_files/circular/' . $pdf, FILE_EXISTS_REPLACE);
+				$node->field_info_file_upload = array(
+				   'und' => array(
+				        0 => array(
+					        'fid' => $file_pdfname->fid,
+					        'filename' => $file_pdfname->filename,
+					        'filemime' => $file_pdfname->filemime,
+					        'uid' => 1,
+					        'uri' => $file_pdfname->uri,
+					   	    'status' => 1,
+					   	    'display' => '1',
+					   	    'description'=> ''
+
+				    	)
+					)
+				);
+        /* End File Upload */
+
+
+
+
+		  node_save($node);
+       }
+     
+	  
+	      			//node_save($node);
+			
+		
+	}
+}

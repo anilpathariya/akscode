@@ -1,0 +1,179 @@
+<?php
+
+function resource_form_alter(&$form, $form_state, $form_id){
+
+  /* if($form_id=='aai_inner_page_banner_node_form'){
+  $types = node_type_get_types();
+  foreach($types as $node_type) {
+    $nodetypes[$node_type->type] = $node_type->name;
+  }
+  $default_val = $form['field_content_type']['und']['#entity']->field_content_type['und'][0]['value'];
+  $form['field_content_type']['und']['#options'] = $nodetypes;
+  $form['field_content_type']['und']['#default_value'] = $default_val;
+  
+  } */
+ if($form_id == 'resources_node_form'){
+	$form['#validate'][] = 'resource_validate_function';
+	}
+}
+ 
+function resource_validate_function($form, &$form_state)
+{
+
+$functions = AAI::getInstance();
+$lang = $functions->aaiCurrentLang();
+
+$resourceStartDate =  $form_state['values']['field_document_date'][$lang][0]['value'];
+$resourceEndDate =  $form_state['values']['field_document_date'][$lang][0]['value2'];
+
+$currentDate = date('Y-m-d');
+$fileUploadID = '';
+$fileUrl = '';
+if(strtotime($resourceStartDate) > strtotime($currentDate)){
+
+form_set_error('field_document_date', t('Document Start Date Should be Less or Equal to the Current Date'));
+
+}elseif(strtotime($resourceEndDate) < strtotime($resourceStartDate)){
+
+form_set_error('field_document_date', t('Document End Date Should be Greater or equal to the Document Start Date'));
+
+}
+elseif(strtotime($resourceEndDate) < strtotime($currentDate)){
+
+form_set_error('field_document_date', t('Document End Date Should be Greater or equal to the Current Date'));
+
+}
+
+if(!empty($form_state['values']['field_upload_document'][$lang][0]['fid'])){
+
+$fileUploadID = $form_state['values']['field_upload_document'][$lang][0]['fid'];
+
+}
+if(isset($form_state['values']['field_web_url'][$lang][0]['value'])){
+
+ $fileUrl = $form_state['values']['field_web_url'][$lang][0]['value'];
+
+}
+
+if(!empty($fileUploadID) && isset($fileUrl) && $fileUploadID != 0 && $fileUrl != '' ){
+
+form_set_error('field_web_url', t('Please create individual resources for upload document and Web URL'));
+
+}
+
+
+  // echo "<pre>";
+  
+  // print_r($form_state);
+  
+ // exit;
+ 
+}
+function resource_wysiwyg_editor_settings_alter(&$settings, $context) {
+    if ($context['profile']->editor == 'ckeditor') {
+        $settings['extraAllowedContent'] = array(
+            'a[download,type,length,href]',
+            'span;ul;li;table;tr;td;style;*[id];*(*);*{*}'
+        );
+    }
+}
+// function resource_menu() {
+ // // $items['node/add/resources'] = array(
+    // // 'title' => 'Add',
+	 // // 'title callback' => 'check_plain',
+    // // 'page callback' => 'resource_add',
+    // // 'access callback' => 'resource_access',
+    // // 'access arguments' => array('create', 'resource'),
+    // // 'file' => 'node.pages.inc',
+  // // );
+   // $items = array();
+   // $items['node/%node/visitors'] = array(
+    // 'title' => 'Visitorssss',
+    // 'page callback' => 'visitors_node',
+    // 'access callback' => 'user_access',
+    // 'access arguments' => array('access visitors'),
+    // 'type' => MENU_LOCAL_TASK,
+    // 'weight' => 2,
+    // 'file' => 'visitors.admin.inc',
+  // );
+  // return $items;
+  
+// }
+  // $items['node/add/' . $type_url_str] = array(
+      // 'title' => $type->name,
+      // 'title callback' => 'check_plain',
+      // 'page callback' => 'node_add',
+      // 'page arguments' => array($type->type),
+      // 'access callback' => 'node_access',
+      // 'access arguments' => array('create', $type->type),
+      // 'description' => $type->description,
+      // 'file' => 'node.pages.inc',
+    // );
+/*
+function resource_views_query_alter(&$view, &$query) {
+
+if ($view->name == 'resources') {
+ //echo "<pre>";
+	$categoryID =  '';
+	$parentArr = '';
+	$parentID = '';
+	$departmentID = '';
+	$catefieldVal = '';
+	$catefieldVal1 ='';
+	if(isset($query->where[1]['conditions'][3]['field'])){
+	
+	$catefieldVal = $query->where[1]['conditions'][3]['field'];
+	}
+	if(isset($query->where[1]['conditions'][2]['field'])){	
+	$catefieldVal1 = $query->where[1]['conditions'][2]['field'];
+	}
+	
+	
+	// condition for checking index field
+	
+   if($catefieldVal == 'field_data_field_category.field_category_tid'){
+		   $categoryID =  $query->where[1]['conditions'][3]['value'];
+			$parentArr = taxonomy_get_parents($categoryID);
+			$departmentID =  $query->where[1]['conditions'][2]['value'];
+   }elseif($catefieldVal1 == 'field_data_field_category.field_category_tid'){
+			$categoryID =  $query->where[1]['conditions'][2]['value'];
+			$parentArr = taxonomy_get_parents($categoryID);
+   }
+    
+	// check parent ID exit or not
+	
+   if(!empty($parentArr[4]->tid)){
+    $parentID =  $parentArr[4]->tid;
+	}
+	 // Verify conditions with category and department ID
+	 
+	 if((empty($parentID) && !empty($categoryID)) && (empty($departmentID) || !empty($departmentID))){
+	 
+	 // fetch record from taxonomy_term_hierarchy table 
+	 
+			$result = db_select('taxonomy_term_hierarchy', 'c')
+			->fields('c')
+			->condition('parent',$categoryID,'=')
+			->execute();
+	  while($record = $result->fetchAssoc()) {
+			$tidVal[]=  $record['tid'];
+		}
+		
+	// check condition for override query with default query
+	
+	if(empty($parentID) && !empty($categoryID) &&  !empty($departmentID)){
+							$query->where[1]['conditions'][3] = array(
+                             'field' => 'field_data_field_category.field_category_tid',
+                            'value' => 	 $tidVal
+                         );
+	 }else{
+							$query->where[1]['conditions'][2] = array(
+                             'field' => 'field_data_field_category.field_category_tid',
+                            'value' => 	 $tidVal
+                         );
+	 }
+}
+}
+    
+}
+*/
